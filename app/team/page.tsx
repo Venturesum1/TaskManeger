@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { apiUrl } from '@/lib/api';
 import AppLayout from '@/components/layout/AppLayout';
 import Header from '@/components/layout/Header';
 import { IUser } from '@/lib/types';
@@ -24,10 +25,10 @@ function UserModal({ user, onClose, onSaved }: { user?: IUser | null; onClose: (
     e.preventDefault();
     setLoading(true);
     try {
-      const url = isEdit ? `/api/users/${user!._id}` : '/api/users';
+      const url = isEdit ? apiUrl(`/api/users/${user!._id}`) : apiUrl('/api/users');
       const method = isEdit ? 'PATCH' : 'POST';
       const body = isEdit ? { name: form.name, role: form.role, department: form.department, phone: form.phone } : form;
-      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const res = await fetch(url, { method, credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await res.json();
       if (data.success) { toast.success(isEdit ? 'Member updated' : 'Member added'); onSaved(); onClose(); }
       else toast.error(data.error || 'Failed');
@@ -100,7 +101,7 @@ export default function TeamPage() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('/api/users');
+      const res = await fetch(apiUrl('/api/users'), { credentials: 'include' });
       const data = await res.json();
       if (data.success) setUsers(data.data);
     } finally { setLoading(false); }
@@ -110,7 +111,7 @@ export default function TeamPage() {
 
   const deleteUser = async (id: string) => {
     if (!confirm('Remove this team member?')) return;
-    await fetch(`/api/users/${id}`, { method: 'DELETE' });
+    await fetch(apiUrl(`/api/users/${id}`), { method: 'DELETE', credentials: 'include' });
     toast.success('Member removed');
     fetchUsers();
   };

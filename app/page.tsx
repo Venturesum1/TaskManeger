@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { apiUrl } from '@/lib/api';
 import AppLayout from '@/components/layout/AppLayout';
 import Header from '@/components/layout/Header';
 import StatsCards from '@/components/dashboard/StatsCards';
@@ -23,8 +24,8 @@ export default function DashboardPage() {
     const fetchData = async () => {
       try {
         const [tRes, mRes] = await Promise.all([
-          fetch('/api/tasks'),
-          fetch('/api/meetings'),
+          fetch(apiUrl('/api/tasks'), { credentials: 'include' }),
+          fetch(apiUrl('/api/meetings'), { credentials: 'include' }),
         ]);
         const [tData, mData] = await Promise.all([tRes.json(), mRes.json()]);
         if (tData.success) setTasks(tData.data);

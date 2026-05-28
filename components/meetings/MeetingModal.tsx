@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { apiUrl } from '@/lib/api';
 import { X, Loader2, Video, MessageCircle, Mail } from 'lucide-react';
 import { IMeeting, IUser } from '@/lib/types';
 import { getInitials, formatDate, formatTime, buildWhatsAppLink } from '@/lib/utils';
@@ -59,10 +60,10 @@ export default function MeetingModal({ meeting, users, defaultDate, onClose, onS
     if (!form.title.trim()) return;
     setLoading(true);
     try {
-      const url = isEdit ? `/api/meetings/${meeting!._id}` : '/api/meetings';
+      const url = isEdit ? apiUrl(`/api/meetings/${meeting!._id}`) : apiUrl('/api/meetings');
       const method = isEdit ? 'PATCH' : 'POST';
       const res = await fetch(url, {
-        method,
+        method, credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: form.title, description: form.description,
@@ -84,7 +85,7 @@ export default function MeetingModal({ meeting, users, defaultDate, onClose, onS
     if (!meeting || !confirm('Delete this meeting?')) return;
     setLoading(true);
     try {
-      await fetch(`/api/meetings/${meeting._id}`, { method: 'DELETE' });
+      await fetch(apiUrl(`/api/meetings/${meeting._id}`), { method: 'DELETE', credentials: 'include' });
       toast.success('Meeting deleted');
       onSaved();
       onClose();
@@ -111,8 +112,8 @@ export default function MeetingModal({ meeting, users, defaultDate, onClose, onS
     if (allRecipients.length === 0) { toast.error('No recipients with email'); return; }
     const meetLink = meeting?.googleMeetLink || '';
     for (const u of allRecipients) {
-      await fetch('/api/send-reminder', {
-        method: 'POST',
+      await fetch(apiUrl('/api/send-reminder'), {
+        method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'meeting_reminder',

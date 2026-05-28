@@ -1,7 +1,7 @@
 {
-  "name": "taskflow",
+  "name": "b4utaskmanagement",
   "version": "2.0.0",
-  "description": "Clean minimal task management dashboard — Linear + Notion style",
+  "description": "B4Utaskmanagement — Smart task and team management platform",
   "private": true,
   "scripts": {
     "dev": "next dev",

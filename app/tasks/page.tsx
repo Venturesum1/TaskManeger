@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
+import { apiUrl } from '@/lib/api';
 import AppLayout from '@/components/layout/AppLayout';
 import Header from '@/components/layout/Header';
 import TaskModal from '@/components/tasks/TaskModal';
@@ -35,7 +36,7 @@ export default function TasksPage() {
 
   const fetchTasks = async () => {
     try {
-      const res = await fetch('/api/tasks');
+      const res = await fetch(apiUrl('/api/tasks'), { credentials: 'include' });
       const data = await res.json();
       if (data.success) setTasks(data.data);
     } catch { toast.error('Failed to load tasks'); }
@@ -45,7 +46,10 @@ export default function TasksPage() {
     if (authLoading || !user) return;
     const init = async () => {
       try {
-        const [tRes, uRes] = await Promise.all([fetch('/api/tasks'), fetch('/api/users')]);
+        const [tRes, uRes] = await Promise.all([
+          fetch(apiUrl('/api/tasks'), { credentials: 'include' }),
+          fetch(apiUrl('/api/users'), { credentials: 'include' }),
+        ]);
         const [tData, uData] = await Promise.all([tRes.json(), uRes.json()]);
         if (tData.success) setTasks(tData.data);
         if (uData.success) setUsers(uData.data);
@@ -104,8 +108,8 @@ export default function TasksPage() {
 
   const patchTask = async (id: string, updates: Partial<ITask>) => {
     try {
-      const res = await fetch(`/api/tasks/${id}`, {
-        method: 'PATCH',
+      const res = await fetch(apiUrl(`/api/tasks/${id}`), {
+        method: 'PATCH', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
@@ -128,8 +132,8 @@ export default function TasksPage() {
     const owner = typeof task.owner === 'object' ? task.owner : null;
     if (!owner?.email) { toast.error('Owner has no email'); return; }
     try {
-      await fetch('/api/send-reminder', {
-        method: 'POST',
+      await fetch(apiUrl('/api/send-reminder'), {
+        method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'task_due',

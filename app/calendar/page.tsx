@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import { apiUrl } from '@/lib/api';
 import dynamic from 'next/dynamic';
 import AppLayout from '@/components/layout/AppLayout';
 import Header from '@/components/layout/Header';
@@ -29,7 +30,7 @@ export default function CalendarPage() {
 
   const fetchMeetings = async () => {
     try {
-      const res = await fetch('/api/meetings');
+      const res = await fetch(apiUrl('/api/meetings'), { credentials: 'include' });
       const data = await res.json();
       if (data.success) setMeetings(data.data);
     } catch { toast.error('Failed to load meetings'); }
@@ -38,7 +39,10 @@ export default function CalendarPage() {
   useEffect(() => {
     if (authLoading || !user) return;
     const init = async () => {
-      const [mRes, uRes] = await Promise.all([fetch('/api/meetings'), fetch('/api/users')]);
+      const [mRes, uRes] = await Promise.all([
+        fetch(apiUrl('/api/meetings'), { credentials: 'include' }),
+        fetch(apiUrl('/api/users'), { credentials: 'include' }),
+      ]);
       const [mData, uData] = await Promise.all([mRes.json(), uRes.json()]);
       if (mData.success) setMeetings(mData.data);
       if (uData.success) setUsers(uData.data);

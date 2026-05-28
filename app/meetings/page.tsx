@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { apiUrl } from '@/lib/api';
 import AppLayout from '@/components/layout/AppLayout';
 import Header from '@/components/layout/Header';
 import MeetingModal from '@/components/meetings/MeetingModal';
@@ -20,7 +21,7 @@ export default function MeetingsPage() {
 
   const fetchMeetings = async () => {
     try {
-      const res = await fetch('/api/meetings');
+      const res = await fetch(apiUrl('/api/meetings'), { credentials: 'include' });
       const data = await res.json();
       if (data.success) setMeetings(data.data);
     } catch { }
@@ -29,7 +30,10 @@ export default function MeetingsPage() {
   useEffect(() => {
     if (authLoading || !user) return;
     const init = async () => {
-      const [mRes, uRes] = await Promise.all([fetch('/api/meetings'), fetch('/api/users')]);
+      const [mRes, uRes] = await Promise.all([
+        fetch(apiUrl('/api/meetings'), { credentials: 'include' }),
+        fetch(apiUrl('/api/users'), { credentials: 'include' }),
+      ]);
       const [mData, uData] = await Promise.all([mRes.json(), uRes.json()]);
       if (mData.success) setMeetings(mData.data);
       if (uData.success) setUsers(uData.data);
@@ -40,7 +44,7 @@ export default function MeetingsPage() {
 
   const deleteMeeting = async (id: string) => {
     if (!confirm('Delete this meeting?')) return;
-    await fetch(`/api/meetings/${id}`, { method: 'DELETE' });
+    await fetch(apiUrl(`/api/meetings/${id}`), { method: 'DELETE', credentials: 'include' });
     toast.success('Meeting deleted');
     fetchMeetings();
   };
