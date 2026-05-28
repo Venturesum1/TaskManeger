@@ -134,6 +134,7 @@ export default function TasksPage() {
     try {
       const res = await fetch(apiUrl('/api/send-reminder'), {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'task_due',
