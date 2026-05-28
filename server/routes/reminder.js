@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const nodemailer = require('nodemailer');
-const { getAuthUser } = require('../lib/auth');
 
 function buildHTML(type, data) {
   const styles = `body{font-family:Inter,system-ui,sans-serif;background:#F9FAFB;margin:0;padding:24px}.card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:32px;max-width:520px;margin:0 auto}.btn{display:inline-block;background:#6366F1;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px}`;
@@ -33,8 +32,6 @@ function buildHTML(type, data) {
 }
 
 router.post('/', async (req, res) => {
-  const auth = getAuthUser(req);
-  if (!auth) return res.status(401).json({ success: false, error: 'Unauthorized' });
   try {
     const { type, to, subject, data } = req.body;
     if (!to || !subject) return res.status(400).json({ success: false, error: 'Recipient and subject required' });

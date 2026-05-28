@@ -132,7 +132,7 @@ export default function TasksPage() {
     const owner = typeof task.owner === 'object' ? task.owner : null;
     if (!owner?.email) { toast.error('Owner has no email address'); return; }
     try {
-      const res = await fetch('/api/send-reminder', {
+      const res = await fetch(apiUrl('/api/send-reminder'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
