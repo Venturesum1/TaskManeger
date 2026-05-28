@@ -7,14 +7,12 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Build allowed origins — env var takes priority, always include localhost
-const envOrigins = (process.env.ALLOWED_ORIGINS || '')
-  .split(',').map(o => o.trim()).filter(Boolean);
-
+// Build allowed origins from FRONTEND_URL + ALLOWED_ORIGINS + localhost
 const allowedOrigins = [
-  ...envOrigins,
+  process.env.FRONTEND_URL,
+  ...(process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean),
   'http://localhost:3000',
-];
+].filter(Boolean);
 
 const corsOptions = {
   origin: (origin, callback) => {
