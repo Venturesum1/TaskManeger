@@ -120,7 +120,7 @@ export default function TasksPage() {
   const sendWhatsApp = (task: ITask) => {
     const owner = typeof task.owner === 'object' ? task.owner : null;
     if (!owner?.phone) { toast.error('Owner has no phone number'); return; }
-    const msg = `Hi ${owner.name},\n\nReminder: Your task "${task.title}" is${task.endDate ? ` due on ${formatDate(task.endDate)}` : ' overdue'}.\nStatus: ${STATUS_LABELS[task.status]}\n\nPlease update your progress.\n— TaskFlow`;
+    const msg = `Hi ${owner.name},\n\nReminder: Your task "${task.title}" is${task.endDate ? ` due on ${formatDate(task.endDate)}` : ' overdue'}.\nStatus: ${STATUS_LABELS[task.status]}\n\nPlease update your progress.\n— B4Utaskmanagement`;
     window.open(buildWhatsAppLink(owner.phone, msg), '_blank');
   };
 

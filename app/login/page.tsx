@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Zap, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import Image from 'next/image';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -38,17 +39,17 @@ export default function LoginPage() {
       <div style={{ width: '100%', maxWidth: 380 }}>
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div
-            className="flex items-center justify-center mb-4"
-            style={{
-              width: 48, height: 48, borderRadius: 12,
-              background: 'var(--primary)',
-            }}
-          >
-            <Zap style={{ width: 24, height: 24, color: '#fff' }} />
+          <div className="mb-4 rounded-2xl overflow-hidden shadow-md" style={{ width: 72, height: 72 }}>
+            <Image src="/logo.jpg" alt="B4U Logo" width={72} height={72} style={{ objectFit: 'cover' }} />
           </div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>
-            TaskFlow
+          <h1 style={{
+            fontSize: 24, fontWeight: 800, marginBottom: 4, letterSpacing: '-0.02em',
+            background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 50%, #92400E 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}>
+            B4Utaskmanagement
           </h1>
           <p style={{ fontSize: 14, color: 'var(--text-muted)', textAlign: 'center' }}>
             Sign in to your workspace

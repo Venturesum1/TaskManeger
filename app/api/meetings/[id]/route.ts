@@ -45,7 +45,7 @@ async function sendUpdateEmails(meeting: any) {
     if (!email) continue;
     try {
       await transporter.sendMail({
-        from: process.env.EMAIL_FROM || `TaskFlow <${process.env.EMAIL_USER}>`,
+        from: process.env.EMAIL_FROM || `B4Utaskmanagement <${process.env.EMAIL_USER}>`,
         to: email,
         subject: `Meeting Updated: ${meeting.title}`,
         html,

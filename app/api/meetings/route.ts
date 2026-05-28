@@ -55,7 +55,7 @@ async function sendMeetingEmails(
   for (const email of emails) {
     try {
       await transporter.sendMail({
-        from: process.env.EMAIL_FROM || `TaskFlow <${process.env.EMAIL_USER}>`,
+        from: process.env.EMAIL_FROM || `B4Utaskmanagement <${process.env.EMAIL_USER}>`,
         to: email,
         subject,
         html,

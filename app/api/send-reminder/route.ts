@@ -50,7 +50,7 @@ function buildReminderHTML(type: string, data: Record<string, string>) {
     </div>`;
   }
 
-  return `<style>${styles}</style><div class="card"><p>${data.message || 'You have a new notification from TaskFlow.'}</p></div>`;
+  return `<style>${styles}</style><div class="card"><p>${data.message || 'You have a new notification from B4Utaskmanagement.'}</p></div>`;
 }
 
 export async function POST(req: NextRequest) {
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
     const html = buildReminderHTML(type, data || {});
 
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `TaskFlow <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_FROM || `B4Utaskmanagement <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html,

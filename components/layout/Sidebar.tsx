@@ -2,10 +2,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import Image from 'next/image';
 import {
   LayoutDashboard, CheckSquare, Calendar, Video,
   Users, Settings, ChevronLeft, ChevronRight,
-  Zap, LogOut,
+  LogOut,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn, getInitials } from '@/lib/utils';
@@ -32,18 +33,21 @@ export default function Sidebar({ collapsed, onToggle }: Props) {
     <aside className={cn('sidebar', collapsed && 'collapsed')} style={{ width: collapsed ? 60 : 232 }}>
       {/* Logo */}
       <div
-        className="flex items-center gap-2.5 px-4 border-b"
+        className="flex items-center gap-2.5 px-3 border-b"
         style={{ height: 56, borderColor: 'var(--border)', flexShrink: 0 }}
       >
-        <div
-          className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center"
-          style={{ background: 'var(--primary)' }}
-        >
-          <Zap className="w-3.5 h-3.5 text-white" />
+        <div className="flex-shrink-0 rounded-lg overflow-hidden" style={{ width: 28, height: 28 }}>
+          <Image src="/logo.jpg" alt="B4U" width={28} height={28} style={{ objectFit: 'cover', borderRadius: 6 }} />
         </div>
         {!collapsed && (
-          <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>
-            TaskFlow
+          <span style={{
+            fontSize: 13, fontWeight: 800, letterSpacing: '-0.01em',
+            background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 50%, #92400E 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}>
+            B4Utaskmanagement
           </span>
         )}
       </div>

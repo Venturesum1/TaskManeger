@@ -4,8 +4,9 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
-  title: 'TaskFlow — Task Management Dashboard',
-  description: 'Simple, clean task management — Linear + Notion style',
+  title: 'B4Utaskmanagement — Task Management Dashboard',
+  description: 'B4Utaskmanagement — Smart task and team management platform',
+  icons: { icon: '/favicon.ico' },
 };
 
 export const viewport: Viewport = {

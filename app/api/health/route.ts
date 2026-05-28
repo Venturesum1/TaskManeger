@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/db';
 
 export async function GET() {
   const status: Record<string, unknown> = {
-    app: 'TaskFlow v2',
+    app: 'B4Utaskmanagement v2',
     node: process.version,
     env: process.env.NODE_ENV,
     mongoUri: process.env.MONGODB_URI
