@@ -17,8 +17,7 @@ export async function connectDB(): Promise<typeof mongoose> {
 
   if (!uri) {
     throw new Error(
-      'MONGODB_URI is not defined. Add it to .env.local:\n' +
-      'MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/taskflow'
+      'MONGODB_URI is not defined. Add it to .env or set it in your hosting environment variables.'
     );
   }
 
