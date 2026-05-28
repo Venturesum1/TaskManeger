@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthUser } from '@/lib/auth';
 import nodemailer from 'nodemailer';
 
 function createTransport() {
@@ -54,9 +53,6 @@ function buildReminderHTML(type: string, data: Record<string, string>) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = getAuthUser(req);
-  if (!auth) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-
   try {
     const { type, to, subject, data } = await req.json();
 
