@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { ITask, IUser, TaskStatus, TaskPriority } from '@/lib/types';
+import { apiUrl } from '@/lib/api';
 import toast from 'react-hot-toast';
 
 const STATUSES: { value: TaskStatus; label: string }[] = [
@@ -63,11 +64,12 @@ export default function TaskModal({ task, users, onClose, onSaved }: Props) {
     setLoading(true);
 
     try {
-      const url = isEdit ? `/api/tasks/${task!._id}` : '/api/tasks';
+      const url = isEdit ? apiUrl(`/api/tasks/${task!._id}`) : apiUrl('/api/tasks');
       const method = isEdit ? 'PATCH' : 'POST';
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(form),
       });
       const data = await res.json();
@@ -89,7 +91,7 @@ export default function TaskModal({ task, users, onClose, onSaved }: Props) {
     if (!task || !confirm('Delete this task?')) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/tasks/${task._id}`, { method: 'DELETE' });
+      const res = await fetch(apiUrl(`/api/tasks/${task._id}`), { method: 'DELETE', credentials: 'include' });
       const data = await res.json();
       if (data.success) {
         toast.success('Task deleted');
