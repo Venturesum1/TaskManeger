@@ -8,11 +8,11 @@ import { StatusBadge, PriorityBadge } from '@/components/tasks/StatusBadge';
 import { ITask, IUser, TaskStatus, TaskPriority } from '@/lib/types';
 import {
   formatDate, getDaysRemaining, isOverdue,
-  getInitials, buildWhatsAppLink, STATUS_LABELS, PRIORITY_LABELS,
+  getInitials, buildWhatsAppLink, STATUS_LABELS,
 } from '@/lib/utils';
 import {
   ArrowUpDown, ArrowUp, ArrowDown, Plus, Filter,
-  MessageCircle, Mail, MoreHorizontal, Edit2, ChevronDown,
+  MessageCircle, Mail, Edit2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -130,9 +130,9 @@ export default function TasksPage() {
 
   const sendEmail = async (task: ITask) => {
     const owner = typeof task.owner === 'object' ? task.owner : null;
-    if (!owner?.email) { toast.error('Owner has no email'); return; }
+    if (!owner?.email) { toast.error('Owner has no email address'); return; }
     try {
-      await fetch(apiUrl('/api/send-reminder'), {
+      const res = await fetch(apiUrl('/api/send-reminder'), {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -142,8 +142,10 @@ export default function TasksPage() {
           data: { taskTitle: task.title, ownerName: owner.name, dueDate: task.endDate ? formatDate(task.endDate) : 'N/A' },
         }),
       });
-      toast.success(`Email reminder sent to ${owner.name}`);
-    } catch { toast.error('Failed to send email'); }
+      const data = await res.json();
+      if (data.success) toast.success(`Email sent to ${owner.name}`);
+      else toast.error(data.error || 'Email failed');
+    } catch (e: any) { toast.error(e.message || 'Network error'); }
   };
 
   return (
