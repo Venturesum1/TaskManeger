@@ -1,48 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>{{subject}}</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Inter, system-ui, -apple-system, sans-serif; background: #F9FAFB; padding: 32px 16px; }
-  .wrapper { max-width: 560px; margin: 0 auto; }
-  .card { background: #ffffff; border: 1px solid #E5E7EB; border-radius: 12px; padding: 36px; }
-  .badge { font-size: 11px; font-weight: 600; color: #6B7280; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 20px; }
-  .title { font-size: 22px; font-weight: 700; color: #111827; margin-bottom: 24px; }
-  .detail-block { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 18px; margin-bottom: 24px; }
-  .meeting-title { font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 10px; }
-  .detail-row { font-size: 13px; color: #6B7280; margin-bottom: 6px; }
-  .meet-link { font-size: 13px; color: #6B7280; margin-top: 10px; word-break: break-all; }
-  .meet-link a { color: #6366F1; font-weight: 500; text-decoration: none; }
-  .btn { display: inline-block; background: #6366F1; color: #ffffff; padding: 11px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; }
-  .footer { margin-top: 28px; font-size: 12px; color: #9CA3AF; border-top: 1px solid #F3F4F6; padding-top: 20px; }
-</style>
-</head>
-<body>
-  <div class="wrapper">
-    <div class="card">
-      <p class="badge">Meeting Invite · B4Utaskmanagement</p>
-      <h1 class="title">📅 {{subject}}</h1>
-      <div class="detail-block">
-        <p class="meeting-title">{{meetingTitle}}</p>
-        <p class="detail-row">📅 {{dateFormatted}}</p>
-        <p class="detail-row">🕐 {{startTime}} – {{endTime}}</p>
-        {{#if meetLink}}
-        <p class="meet-link">🎥 <a href="{{meetLink}}">{{meetLink}}</a></p>
-        {{/if}}
-      </div>
-      {{#if meetLink}}
-      <a href="{{meetLink}}" class="btn">Join Google Meet</a>
-      {{else}}
-      <a href="{{appUrl}}/meetings" class="btn">View Meeting</a>
-      {{/if}}
-      <div class="footer">
-        <p>You are receiving this because you were added as a participant.</p>
-        <p style="margin-top:6px">B4Utaskmanagement &mdash; Task &amp; Meeting Management</p>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif;background:#F9FAFB;padding:32px 16px}.wrap{max-width:560px;margin:0 auto}.card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:36px}.label{font-size:11px;font-weight:600;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px}.title{font-size:22px;font-weight:700;color:#111827;margin-bottom:24px}.info{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:18px;margin-bottom:24px}.meeting-title{font-size:15px;font-weight:600;color:#111827;margin-bottom:10px}.row{font-size:13px;color:#6B7280;margin-bottom:6px}.meet-row{font-size:13px;color:#6B7280;margin-top:10px;word-break:break-all}.meet-row a{color:#6366F1;font-weight:500;text-decoration:none}.btn{display:inline-block;background:#6366F1;color:#fff;padding:11px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px}.btn-outline{display:inline-block;background:#ECFDF5;color:#065F46;padding:11px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;border:1px solid #A7F3D0;margin-left:8px}.footer{margin-top:28px;font-size:12px;color:#9CA3AF;border-top:1px solid #F3F4F6;padding-top:20px}</style>
+</head><body><div class="wrap"><div class="card">
+<p class="label">Meeting Invite · {{companyName}}</p>
+<h1 class="title">📅 {{subject}}</h1>
+<div class="info">
+  <p class="meeting-title">{{meetingTitle}}</p>
+  <p class="row">📅 {{dateFormatted}}</p>
+  <p class="row">🕐 {{startTime}} – {{endTime}}</p>
+  {{#if meetLink}}<p class="meet-row">🎥 <a href="{{meetLink}}">{{meetLink}}</a></p>{{/if}}
+</div>
+{{#if meetLink}}
+<a href="{{meetLink}}" class="btn">Join Google Meet</a>
+{{else}}
+<a href="{{appUrl}}/meetings" class="btn">View Meeting</a>
+{{/if}}
+<div class="footer"><p>You received this because you were added as a participant.</p><p style="margin-top:6px">{{companyName}} · {{year}}</p></div>
+</div></div></body></html>
