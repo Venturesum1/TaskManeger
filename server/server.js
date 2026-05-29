@@ -60,18 +60,12 @@ async function boot() {
     process.exit(1);
   }
 
-  // 2. Email SMTP
-  const skipEmailVerify = process.env.SKIP_EMAIL_VERIFY === 'true';
+  // 2. Email SMTP — warn only, never crash (queue processor handles retries)
   try {
     await emailService.verifyConnection();
     logger.info('[Server] ✓ Email SMTP verified');
   } catch (err) {
-    if (skipEmailVerify) {
-      logger.warn('[Server] ⚠ Email SMTP unavailable (SKIP_EMAIL_VERIFY=true) — continuing anyway', { error: err.message });
-    } else {
-      logger.error('[Server] ✗ Email SMTP verification failed — set SKIP_EMAIL_VERIFY=true to bypass', { error: err.message });
-      process.exit(1);
-    }
+    logger.warn('[Server] ⚠ Email SMTP unavailable — server starting anyway, emails will retry via queue', { error: err.message });
   }
 
   // 3. Start cron jobs
