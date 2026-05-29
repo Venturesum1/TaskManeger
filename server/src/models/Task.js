@@ -14,6 +14,7 @@ const TaskSchema = new mongoose.Schema({
   endDate: { type: Date },
   milestone: { type: String, default: '' },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  estimatedHours: { type: Number, default: 0 },
 }, { timestamps: true });
 
 module.exports = mongoose.models.Task || mongoose.model('Task', TaskSchema);

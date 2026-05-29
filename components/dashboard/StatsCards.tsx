@@ -1,71 +1,50 @@
 'use client';
-import { ITask } from '@/lib/types';
-import { CheckSquare, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { ITask, IMeeting } from '@/lib/types';
+import { CheckSquare, Clock, CheckCircle2, AlertTriangle, Video, CalendarClock } from 'lucide-react';
 import { isOverdue } from '@/lib/utils';
 
 interface Props {
   tasks: ITask[];
+  meetings?: IMeeting[];
 }
 
-export default function StatsCards({ tasks }: Props) {
+export default function StatsCards({ tasks, meetings = [] }: Props) {
   const total = tasks.length;
   const pending = tasks.filter(t => t.status === 'not_started' || t.status === 'in_progress').length;
   const completed = tasks.filter(t => t.status === 'completed').length;
+  const overdue = tasks.filter(t => t.endDate && isOverdue(t.endDate, t.status)).length;
   const upcoming = tasks.filter(t =>
     t.endDate && !isOverdue(t.endDate, t.status)
     && t.status !== 'completed'
     && (() => {
-      const d = (new Date(t.endDate).getTime() - Date.now()) / 86400000;
+      const d = (new Date(t.endDate as string).getTime() - Date.now()) / 86400000;
       return d >= 0 && d <= 7;
     })()
   ).length;
+  const now = new Date();
+  const upcomingMeetings = meetings.filter(m => new Date(m.date) >= now && m.status !== 'cancelled').length;
 
   const cards = [
-    {
-      label: 'Total Tasks',
-      value: total,
-      icon: CheckSquare,
-      color: '#6366F1',
-      bg: '#EEF2FF',
-    },
-    {
-      label: 'Pending',
-      value: pending,
-      icon: Clock,
-      color: '#F59E0B',
-      bg: '#FFFBEB',
-    },
-    {
-      label: 'Completed',
-      value: completed,
-      icon: CheckCircle2,
-      color: '#10B981',
-      bg: '#ECFDF5',
-    },
-    {
-      label: 'Due This Week',
-      value: upcoming,
-      icon: AlertTriangle,
-      color: '#EF4444',
-      bg: '#FEF2F2',
-    },
+    { label: 'Total Tasks', value: total, icon: CheckSquare, color: '#6366F1', bg: '#EEF2FF' },
+    { label: 'Pending', value: pending, icon: Clock, color: '#F59E0B', bg: '#FFFBEB' },
+    { label: 'Completed', value: completed, icon: CheckCircle2, color: '#10B981', bg: '#ECFDF5' },
+    { label: 'Overdue Tasks', value: overdue, icon: AlertTriangle, color: '#EF4444', bg: '#FEF2F2' },
+    { label: 'Due This Week', value: upcoming, icon: CalendarClock, color: '#8B5CF6', bg: '#F5F3FF' },
+    { label: 'Upcoming Meetings', value: upcomingMeetings, icon: Video, color: '#3B82F6', bg: '#EFF6FF' },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
       {cards.map(card => (
         <div key={card.label} className="stat-card">
           <div className="flex items-center justify-between mb-3">
             <p style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>
               {card.label}
             </p>
-            <div
-              style={{
-                width: 32, height: 32, borderRadius: 8,
-                background: card.bg,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-            >
+            <div style={{
+              width: 32, height: 32, borderRadius: 8, background: card.bg,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
               <card.icon style={{ width: 16, height: 16, color: card.color }} />
             </div>
           </div>

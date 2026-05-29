@@ -28,6 +28,7 @@ export default function TasksPage() {
   const [editTask, setEditTask] = useState<ITask | null>(null);
 
   const [search, setSearch] = useState('');
+  const [quickFilter, setQuickFilter] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<TaskStatus | 'all'>('all');
   const [filterPriority, setFilterPriority] = useState<TaskPriority | 'all'>('all');
   const [sortField, setSortField] = useState<SortField>('endDate');
@@ -74,6 +75,12 @@ export default function TasksPage() {
 
   const filtered = useMemo(() => {
     let arr = tasks;
+    // Quick filter
+    if (quickFilter === 'mine') {
+      arr = arr.filter(t => (typeof t.owner === 'object' ? t.owner._id : t.owner) === user?._id);
+    } else if (quickFilter !== 'all') {
+      arr = arr.filter(t => t.status === quickFilter);
+    }
     if (search) {
       const q = search.toLowerCase();
       arr = arr.filter(t =>
@@ -159,6 +166,32 @@ export default function TasksPage() {
       />
 
       <div className="page-content flex-1">
+        {/* Quick filter tabs */}
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          {[
+            { label: 'All', value: 'all' },
+            { label: 'My Tasks', value: 'mine' },
+            { label: 'Pending', value: 'not_started' },
+            { label: 'In Progress', value: 'in_progress' },
+            { label: 'Completed', value: 'completed' },
+            { label: 'Blocked', value: 'blocked' },
+          ].map(f => (
+            <button
+              key={f.value}
+              onClick={() => setQuickFilter(f.value)}
+              style={{
+                padding: '5px 14px', borderRadius: 20, cursor: 'pointer', fontSize: 13,
+                fontWeight: quickFilter === f.value ? 600 : 400, transition: 'all 0.15s',
+                border: quickFilter === f.value ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
+                background: quickFilter === f.value ? 'var(--primary)' : 'var(--surface)',
+                color: quickFilter === f.value ? '#fff' : 'var(--text-muted)',
+              }}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
         {/* Filters bar */}
         <div className="flex items-center gap-3 mb-4 flex-wrap">
           <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>
