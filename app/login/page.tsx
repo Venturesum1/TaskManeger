@@ -15,7 +15,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (user) router.push('/');
+    if (user) router.push(user.role === 'client' ? '/client' : '/');
   }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,7 +25,7 @@ export default function LoginPage() {
     setLoading(false);
     if (result.success) {
       toast.success('Welcome back!');
-      router.push('/');
+      // Redirect is handled by the useEffect above via user state update
     } else {
       toast.error(result.error || 'Login failed');
     }

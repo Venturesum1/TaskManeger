@@ -6,7 +6,7 @@ import Image from 'next/image';
 import {
   LayoutDashboard, CheckSquare, Calendar, Video,
   Users, Settings, ChevronLeft, ChevronRight,
-  LogOut,
+  LogOut, BarChart2, Activity, Kanban, User,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn, getInitials } from '@/lib/utils';
@@ -14,9 +14,13 @@ import { cn, getInitials } from '@/lib/utils';
 const NAV = [
   { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/tasks', icon: CheckSquare, label: 'Tasks' },
+  { href: '/my-tasks', icon: User, label: 'My Tasks' },
+  { href: '/kanban', icon: Kanban, label: 'Kanban' },
   { href: '/calendar', icon: Calendar, label: 'Calendar' },
   { href: '/meetings', icon: Video, label: 'Meetings' },
   { href: '/team', icon: Users, label: 'Team' },
+  { href: '/reports', icon: BarChart2, label: 'Reports' },
+  { href: '/activity', icon: Activity, label: 'Activity' },
   { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 

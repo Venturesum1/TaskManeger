@@ -1,6 +1,7 @@
 export type TaskStatus = 'not_started' | 'in_progress' | 'completed' | 'blocked' | 'delayed';
 export type TaskPriority = 'low' | 'medium' | 'high';
-export type UserRole = 'admin' | 'member';
+export type UserRole = 'admin' | 'manager' | 'member' | 'client';
+export type MeetingStatus = 'scheduled' | 'completed' | 'cancelled';
 
 export interface IUser {
   _id: string;
@@ -9,6 +10,8 @@ export interface IUser {
   role: UserRole;
   department?: string;
   phone?: string;
+  avatar?: string;
+  isActive?: boolean;
   createdAt: string;
 }
 
@@ -23,6 +26,7 @@ export interface ITask {
   endDate?: string;
   milestone?: string;
   createdBy?: IUser | string;
+  estimatedHours?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -38,6 +42,51 @@ export interface IMeeting {
   googleMeetLink: string;
   organizer: IUser | string;
   reminderSent: boolean;
+  status: MeetingStatus;
+  createdAt: string;
+}
+
+export interface IComment {
+  _id: string;
+  task: string;
+  author: IUser;
+  content: string;
+  mentions: IUser[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IAttachment {
+  _id: string;
+  task: string;
+  uploadedBy: IUser;
+  filename: string;
+  originalName: string;
+  mimetype: string;
+  size: number;
+  path: string;
+  createdAt: string;
+}
+
+export interface ITimeEntry {
+  _id: string;
+  task: string;
+  user: IUser;
+  startedAt?: string;
+  stoppedAt?: string;
+  duration: number;
+  isRunning: boolean;
+  createdAt: string;
+}
+
+export interface IActivity {
+  _id: string;
+  user: IUser;
+  action: string;
+  entityType: 'task' | 'meeting' | 'user' | 'comment' | 'attachment' | 'system';
+  entityId?: string;
+  entityTitle?: string;
+  details?: string;
   createdAt: string;
 }
 
@@ -62,4 +111,17 @@ export interface TaskFilters {
   status: TaskStatus | 'all';
   priority: TaskPriority | 'all';
   owner: string;
+}
+
+export interface AnalyticsData {
+  kpis: {
+    totalTasks: number;
+    pending: number;
+    completed: number;
+    completedThisMonth: number;
+    overdue: number;
+    upcomingMeetings: number;
+  };
+  tasksByStatus: Array<{ name: string; value: number; color: string }>;
+  tasksByUser: Array<{ _id: string; name: string; total: number; completed: number; inProgress: number; blocked: number }>;
 }

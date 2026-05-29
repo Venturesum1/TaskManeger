@@ -9,7 +9,7 @@ import {
   formatDate, getDaysRemaining, isOverdue,
   STATUS_COLORS, STATUS_LABELS, PRIORITY_LABELS, getInitials,
 } from '@/lib/utils';
-import { ArrowRight, Video, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { ArrowRight, Video, Clock, CheckCircle2, AlertTriangle, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -40,12 +40,39 @@ export default function DashboardPage() {
   }, [authLoading, user]);
 
   const recentTasks = tasks.slice(0, 8);
-  const upcomingMeetings = meetings
-    .filter(m => new Date(m.date) >= new Date())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 4);
+  const now = new Date();
+  const todayStr = now.toDateString();
+
+  const todayMeetings = meetings
+    .filter(m => new Date(m.date).toDateString() === todayStr && m.status !== 'cancelled')
+    .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+  const upcomingDeadlines = tasks
+    .filter(t =>
+      t.endDate &&
+      t.status !== 'completed' &&
+      !isOverdue(t.endDate, t.status) &&
+      getDaysRemaining(t.endDate) <= 7
+    )
+    .sort((a, b) => new Date(a.endDate!).getTime() - new Date(b.endDate!).getTime())
+    .slice(0, 6);
 
   const overdueTasks = tasks.filter(t => t.endDate && isOverdue(t.endDate, t.status));
+
+  const deadlineColor = (daysLeft: number) => {
+    if (daysLeft <= 0) return '#EF4444';
+    if (daysLeft <= 1) return '#EF4444';
+    if (daysLeft <= 3) return '#F59E0B';
+    return '#10B981';
+  };
+
+  const deadlineLabel = (endDate: string) => {
+    const d = getDaysRemaining(endDate);
+    if (d < 0) return 'Overdue';
+    if (d === 0) return 'Due Today';
+    if (d === 1) return 'Due Tomorrow';
+    return `Due in ${d} Days`;
+  };
 
   return (
     <AppLayout>
@@ -55,10 +82,10 @@ export default function DashboardPage() {
         {/* Welcome banner */}
         <div className="mb-6">
           <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
-            {(() => { const h = new Date().getHours(); return h < 12 ? 'Good morning 🌅' : h < 17 ? 'Good afternoon ☀️' : h < 21 ? 'Good evening 🌆' : 'Good night 🌙'; })()} 👋
+            {(() => { const h = now.getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 21 ? 'Good evening' : 'Good night'; })()}, {user?.name?.split(' ')[0]} 👋
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-            {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
 
@@ -71,7 +98,7 @@ export default function DashboardPage() {
             <AlertTriangle style={{ width: 16, height: 16, color: '#EF4444', flexShrink: 0 }} />
             <p style={{ fontSize: 13, color: '#B91C1C', margin: 0, flex: 1 }}>
               <strong>{overdueTasks.length} task{overdueTasks.length > 1 ? 's are' : ' is'} overdue.</strong>
-              {' '}Email reminders have been queued.
+              {' '}Please review and update.
             </p>
             <Link href="/tasks">
               <span style={{ fontSize: 13, fontWeight: 600, color: '#EF4444', cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -81,24 +108,25 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Stats */}
+        {/* Stats — 6 cards */}
         <div className="mb-6">
           {loading
-            ? <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {[1,2,3,4].map(i => (
+            ? <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1,2,3,4,5,6].map(i => (
                   <div key={i} className="stat-card" style={{ height: 88 }}>
                     <div style={{ height: 12, width: '60%', background: '#F3F4F6', borderRadius: 4, marginBottom: 12 }} />
                     <div style={{ height: 28, width: '40%', background: '#F3F4F6', borderRadius: 4 }} />
                   </div>
                 ))}
               </div>
-            : <StatsCards tasks={tasks} />
+            : <StatsCards tasks={tasks} meetings={meetings} />
           }
         </div>
 
-        {/* Two-column layout */}
+        {/* Three-column layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* Recent Tasks */}
+
+          {/* Recent Tasks — spans 2 cols */}
           <div className="lg:col-span-2">
             <div className="flex items-center justify-between mb-3">
               <h3 style={{ margin: 0 }}>Recent Tasks</h3>
@@ -136,16 +164,13 @@ export default function DashboardPage() {
                       const owner = typeof task.owner === 'object' ? task.owner : null;
                       const daysLeft = task.endDate ? getDaysRemaining(task.endDate) : null;
                       const late = task.endDate ? isOverdue(task.endDate, task.status) : false;
-
                       return (
                         <tr key={task._id}>
                           <td>
                             <div>
                               <p style={{ fontWeight: 500, color: 'var(--text)', margin: 0 }}>{task.title}</p>
                               {task.milestone && (
-                                <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
-                                  {task.milestone}
-                                </p>
+                                <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{task.milestone}</p>
                               )}
                             </div>
                           </td>
@@ -184,57 +209,38 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Upcoming Meetings */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 style={{ margin: 0 }}>Upcoming Meetings</h3>
-              <Link href="/meetings">
-                <span style={{ fontSize: 13, color: 'var(--primary)', cursor: 'pointer', fontWeight: 500 }}>
-                  View all
-                </span>
-              </Link>
-            </div>
+          {/* Right column: Today's Meetings + Upcoming Deadlines */}
+          <div className="flex flex-col gap-5">
 
-            <div className="flex flex-col gap-3">
-              {loading ? (
-                <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Loading...</p>
-              ) : upcomingMeetings.length === 0 ? (
-                <div
-                  className="card"
-                  style={{ padding: '32px 20px', textAlign: 'center' }}
-                >
-                  <Video style={{ width: 24, height: 24, color: 'var(--text-muted)', margin: '0 auto 8px' }} />
-                  <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No upcoming meetings</p>
-                </div>
-              ) : (
-                upcomingMeetings.map(meeting => {
-                  const dateStr = formatDate(meeting.date);
-                  const isToday = new Date(meeting.date).toDateString() === new Date().toDateString();
-                  return (
-                    <div
-                      key={meeting._id}
-                      className="card card-hover"
-                      style={{ padding: '14px 16px', cursor: 'pointer' }}
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <p style={{ fontWeight: 500, color: 'var(--text)', fontSize: 14, margin: 0 }}>
+            {/* Today's Meetings */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 style={{ margin: 0 }}>Today's Meetings</h3>
+                <Link href="/meetings">
+                  <span style={{ fontSize: 13, color: 'var(--primary)', cursor: 'pointer', fontWeight: 500 }}>View all</span>
+                </Link>
+              </div>
+              <div className="flex flex-col gap-2">
+                {loading ? (
+                  <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Loading...</p>
+                ) : todayMeetings.length === 0 ? (
+                  <div className="card" style={{ padding: '24px 16px', textAlign: 'center' }}>
+                    <Calendar style={{ width: 20, height: 20, color: 'var(--text-muted)', margin: '0 auto 6px' }} />
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No meetings today</p>
+                  </div>
+                ) : (
+                  todayMeetings.map(meeting => (
+                    <div key={meeting._id} className="card" style={{ padding: '12px 14px' }}>
+                      <div className="flex items-start justify-between gap-2 mb-1.5">
+                        <p style={{ fontWeight: 500, color: 'var(--text)', fontSize: 13, margin: 0 }}>
                           {meeting.title}
                         </p>
-                        {isToday && (
-                          <span
-                            className="badge"
-                            style={{ background: '#EEF2FF', color: 'var(--primary)', flexShrink: 0 }}
-                          >
-                            Today
-                          </span>
-                        )}
+                        <MeetingStatusBadge status={meeting.status} />
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <Clock style={{ width: 12, height: 12 }} />
-                          {dateStr} · {meeting.startTime}
-                        </span>
-                      </div>
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Clock style={{ width: 11, height: 11 }} />
+                        {meeting.startTime} – {meeting.endTime}
+                      </span>
                       {meeting.googleMeetLink && (
                         <a
                           href={meeting.googleMeetLink}
@@ -242,25 +248,81 @@ export default function DashboardPage() {
                           rel="noopener noreferrer"
                           className="btn btn-sm"
                           style={{
-                            marginTop: 10, background: '#ECFDF5',
-                            color: '#059669', fontSize: 12, height: 28,
-                            border: '1px solid #A7F3D0', width: '100%',
-                            justifyContent: 'center',
+                            marginTop: 8, background: '#ECFDF5', color: '#059669',
+                            fontSize: 11, height: 26, border: '1px solid #A7F3D0',
+                            width: '100%', justifyContent: 'center',
                           }}
                           onClick={e => e.stopPropagation()}
                         >
-                          <Video style={{ width: 12, height: 12 }} />
+                          <Video style={{ width: 11, height: 11 }} />
                           Join Google Meet
                         </a>
                       )}
                     </div>
-                  );
-                })
-              )}
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Upcoming Deadlines */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 style={{ margin: 0 }}>Upcoming Deadlines</h3>
+                <Link href="/tasks">
+                  <span style={{ fontSize: 13, color: 'var(--primary)', cursor: 'pointer', fontWeight: 500 }}>View all</span>
+                </Link>
+              </div>
+              <div className="flex flex-col gap-2">
+                {loading ? (
+                  <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Loading...</p>
+                ) : upcomingDeadlines.length === 0 ? (
+                  <div className="card" style={{ padding: '24px 16px', textAlign: 'center' }}>
+                    <CheckCircle2 style={{ width: 20, height: 20, color: 'var(--text-muted)', margin: '0 auto 6px' }} />
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No upcoming deadlines</p>
+                  </div>
+                ) : (
+                  upcomingDeadlines.map(task => {
+                    const daysLeft = getDaysRemaining(task.endDate!);
+                    const color = deadlineColor(daysLeft);
+                    const label = deadlineLabel(task.endDate!);
+                    return (
+                      <div
+                        key={task._id}
+                        className="card"
+                        style={{ padding: '10px 14px', borderLeft: `3px solid ${color}` }}
+                      >
+                        <p style={{ fontWeight: 500, color: 'var(--text)', fontSize: 13, margin: '0 0 3px' }}>
+                          {task.title}
+                        </p>
+                        <span style={{ fontSize: 12, color, fontWeight: 600 }}>
+                          {label}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
     </AppLayout>
+  );
+}
+
+function MeetingStatusBadge({ status }: { status: string }) {
+  const cfg: Record<string, { bg: string; color: string; label: string }> = {
+    scheduled: { bg: '#EEF2FF', color: '#6366F1', label: 'Scheduled' },
+    completed: { bg: '#ECFDF5', color: '#10B981', label: 'Completed' },
+    cancelled: { bg: '#FEF2F2', color: '#EF4444', label: 'Cancelled' },
+  };
+  const c = cfg[status] || cfg.scheduled;
+  return (
+    <span style={{
+      fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 4,
+      background: c.bg, color: c.color, flexShrink: 0,
+    }}>
+      {c.label}
+    </span>
   );
 }

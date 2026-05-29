@@ -10,6 +10,7 @@ const MeetingSchema = new mongoose.Schema({
   googleMeetLink: { type: String, default: '' },
   organizer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   reminderSent: { type: Boolean, default: false },
+  status: { type: String, enum: ['scheduled', 'completed', 'cancelled'], default: 'scheduled' },
 }, { timestamps: true });
 
 module.exports = mongoose.models.Meeting || mongoose.model('Meeting', MeetingSchema);

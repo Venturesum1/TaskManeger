@@ -30,14 +30,20 @@ app.use(cookieParser());
 // ─── Routes ────────────────────────────────────────────────────────────────
 app.use('/api/auth',          require('./src/routes/auth'));
 app.use('/api/tasks',         require('./src/routes/tasks'));
+app.use('/api/tasks/:taskId/comments',    require('./src/routes/comments'));
+app.use('/api/tasks/:taskId/time',        require('./src/routes/timeEntries'));
+app.use('/api/tasks/:taskId/attachments', require('./src/routes/attachments'));
 app.use('/api/meetings',      require('./src/routes/meetings'));
 app.use('/api/users',         require('./src/routes/team'));
 app.use('/api/team',          require('./src/routes/team'));
 app.use('/api/settings',      require('./src/routes/settings'));
 app.use('/api/notifications', require('./src/routes/notifications'));
 app.use('/api/send-reminder', require('./src/routes/sendReminder'));
+app.use('/api/activities',    require('./src/routes/activities'));
+app.use('/api/analytics',     require('./src/routes/analytics'));
 app.use('/api/health',        require('./src/routes/health'));
 app.use('/api/system',        require('./src/routes/system'));
+app.use('/uploads',           require('express').static(require('path').join(__dirname, 'uploads')));
 
 app.get('/', (req, res) =>
   res.json({ success: true, message: 'B4Utaskmanagement API', version: '2.0.0' })

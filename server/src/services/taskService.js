@@ -53,6 +53,11 @@ async function createTask({ title, description, owner, priority, status, startDa
   return populated;
 }
 
+async function getTaskById(id) {
+  await connectDB();
+  return Task.findById(id).populate('owner', POPULATE_OWNER).lean();
+}
+
 async function updateTask(id, updates) {
   await connectDB();
   const task = await Task.findByIdAndUpdate(id, { $set: updates }, { new: true })
@@ -114,6 +119,7 @@ async function getTasksDueTomorrow() {
 
 module.exports = {
   listTasks,
+  getTaskById,
   createTask,
   updateTask,
   deleteTask,
