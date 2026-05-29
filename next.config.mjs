@@ -6,9 +6,6 @@ const nextConfig = {
       { protocol: 'https', hostname: 'ui-avatars.com' },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ['mongoose', 'bcryptjs', 'googleapis'],
-  },
 };
 
 export default nextConfig;
