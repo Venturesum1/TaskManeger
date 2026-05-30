@@ -13,7 +13,7 @@ async function getWorkload(req, res) {
     await connectDB();
     const now = new Date();
 
-    const users = await User.find({ role: { $in: ['admin', 'manager', 'member'] }, isActive: true })
+    const users = await User.find({ role: { $in: ['admin', 'manager', 'member'] }, isActive: { $ne: false } })
       .select('name email role department avatar')
       .lean();
 
