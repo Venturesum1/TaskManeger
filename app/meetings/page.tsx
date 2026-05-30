@@ -9,6 +9,8 @@ import { formatDate, formatTime, getInitials, buildWhatsAppLink } from '@/lib/ut
 import { Plus, Video, Clock, Users, MessageCircle, Trash2, Edit2, CheckCircle2, XCircle, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/contexts/PermissionContext';
+import { useRouter } from 'next/navigation';
 
 const STATUS_CFG: Record<MeetingStatus, { label: string; bg: string; color: string; icon: any }> = {
   scheduled: { label: 'Scheduled', bg: '#EEF2FF', color: '#6366F1', icon: Calendar },
@@ -32,7 +34,13 @@ function MeetingStatusBadge({ status }: { status: MeetingStatus }) {
 
 export default function MeetingsPage() {
   const { user, loading: authLoading } = useAuth();
+  const { can, loading: permLoading } = usePermissions();
+  const router = useRouter();
   const [meetings, setMeetings] = useState<IMeeting[]>([]);
+
+  useEffect(() => {
+    if (!permLoading && user && !can('sidebar.meetings')) router.replace('/');
+  }, [permLoading, can, user, router]);
   const [users, setUsers] = useState<IUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);

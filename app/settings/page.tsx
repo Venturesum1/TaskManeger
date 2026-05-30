@@ -4,6 +4,8 @@ import AppLayout from '@/components/layout/AppLayout';
 import Header from '@/components/layout/Header';
 import { apiUrl } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/contexts/PermissionContext';
+import { useRouter } from 'next/navigation';
 import { getInitials } from '@/lib/utils';
 import { Save, Loader2, Mail, Bell, Calendar, Settings, Shield, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -19,8 +21,15 @@ type TabKey = typeof TABS[number]['key'];
 
 export default function SettingsPage() {
   const { user, refreshUser } = useAuth();
+  const { can, loading: permLoading } = usePermissions();
+  const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<TabKey>('general');
+
+  // Redirect if settings.view permission is OFF
+  useEffect(() => {
+    if (!permLoading && user && !can('settings.view')) router.replace('/');
+  }, [permLoading, can, user, router]);
 
   const [profile, setProfile] = useState({
     name: user?.name || '',

@@ -9,6 +9,7 @@ import { AlertTriangle, CheckCircle2, Clock, Users, BarChart3 } from 'lucide-rea
 import { getInitials } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/contexts/PermissionContext';
 
 interface WorkloadEntry {
   user: { _id: string; name: string; email: string; role: string; department?: string };
@@ -32,8 +33,13 @@ const LOAD_CFG = {
 
 export default function WorkloadPage() {
   const { user, loading: authLoading } = useAuth();
+  const { can, loading: permLoading } = usePermissions();
   const router = useRouter();
   const [workload, setWorkload] = useState<WorkloadEntry[]>([]);
+
+  useEffect(() => {
+    if (!permLoading && user && !can('sidebar.workload')) router.replace('/');
+  }, [permLoading, can, user, router]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

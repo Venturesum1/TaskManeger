@@ -34,9 +34,26 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
     setLoading(false);
   }, [user]);
 
+  // Initial load
   useEffect(() => {
     setLoading(true);
     reload();
+  }, [reload]);
+
+  // Poll every 60 s so permission changes by admin take effect quickly
+  useEffect(() => {
+    if (!user) return;
+    const id = setInterval(reload, 60_000);
+    return () => clearInterval(id);
+  }, [user, reload]);
+
+  // Re-fetch immediately when the user switches back to this tab
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') reload();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, [reload]);
 
   const can = useCallback((key: string): boolean => {

@@ -7,6 +7,8 @@ import { IActivity, IUser } from '@/lib/types';
 import { formatDate, getInitials } from '@/lib/utils';
 import { Activity, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/contexts/PermissionContext';
+import { useRouter } from 'next/navigation';
 
 const ENTITY_COLORS: Record<string, string> = {
   task: '#6366F1',
@@ -28,7 +30,13 @@ const ENTITY_BG: Record<string, string> = {
 
 export default function ActivityPage() {
   const { user, loading: authLoading } = useAuth();
+  const { can, loading: permLoading } = usePermissions();
+  const router = useRouter();
   const [activities, setActivities] = useState<IActivity[]>([]);
+
+  useEffect(() => {
+    if (!permLoading && user && !can('sidebar.activity')) router.replace('/');
+  }, [permLoading, can, user, router]);
   const [users, setUsers] = useState<IUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);

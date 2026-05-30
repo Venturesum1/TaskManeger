@@ -7,6 +7,8 @@ import { IUser, ITask, IMeeting, IActivity } from '@/lib/types';
 import { getInitials, formatDate, STATUS_COLORS, STATUS_LABELS } from '@/lib/utils';
 import { Plus, X, Loader2, Edit2, Trash2, Users, ChevronRight, Mail, Phone, CheckCircle2, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/contexts/PermissionContext';
+import { useRouter } from 'next/navigation';
 import { StatusBadge } from '@/components/tasks/StatusBadge';
 import toast from 'react-hot-toast';
 
@@ -286,6 +288,12 @@ export default function TeamPage() {
   const [editUser, setEditUser] = useState<IUser | null>(null);
   const [selectedMember, setSelectedMember] = useState<IUser | null>(null);
   const { user: currentUser, loading: authLoading } = useAuth();
+  const { can, loading: permLoading } = usePermissions();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!permLoading && currentUser && !can('sidebar.team')) router.replace('/');
+  }, [permLoading, can, currentUser, router]);
 
   const fetchAll = async () => {
     try {
