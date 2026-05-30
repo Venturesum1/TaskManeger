@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { apiUrl } from '@/lib/api';
 import AppLayout from '@/components/layout/AppLayout';
 import { IProject, IMilestone, ITask, IUser, MilestoneStatus, ProjectStatus } from '@/lib/types';
-import { formatDate, getInitials, getDaysRemaining, isOverdue } from '@/lib/utils';
+import { formatDate, getInitials, isOverdue } from '@/lib/utils';
 import {
   ArrowLeft, Plus, X, CheckCircle2, Clock, AlertTriangle,
   Flag, Users, Calendar, Activity as ActivityIcon, BarChart2,
@@ -190,6 +190,11 @@ export default function ProjectDetailPage() {
     project: IProject; stats: any; milestones: IMilestone[]; tasks: ITask[]; health: string;
   };
 
+  // Always derive progress from actual task counts — never trust the stored field alone
+  const liveProgress = stats.totalTasks > 0
+    ? Math.round((stats.completedTasks / stats.totalTasks) * 100)
+    : 0;
+
   const healthCfg = HEALTH_CFG[health] || HEALTH_CFG.healthy;
   const projectStatusCfg = STATUS_CFG[project.status];
 
@@ -283,15 +288,15 @@ export default function ProjectDetailPage() {
             <div className="card" style={{ padding: '20px 24px' }}>
               <div className="flex items-center justify-between mb-3">
                 <h3 style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>Overall Progress</h3>
-                <span style={{ fontSize: 18, fontWeight: 700, color: project.progress >= 80 ? '#10B981' : 'var(--primary)' }}>
-                  {project.progress}%
+                <span style={{ fontSize: 18, fontWeight: 700, color: liveProgress >= 80 ? '#10B981' : 'var(--primary)' }}>
+                  {liveProgress}%
                 </span>
               </div>
               <div style={{ height: 10, background: '#F3F4F6', borderRadius: 5 }}>
                 <div style={{
                   height: '100%', borderRadius: 5, transition: 'width 0.5s',
-                  width: `${project.progress}%`,
-                  background: project.progress >= 80 ? '#10B981' : project.progress >= 50 ? '#6366F1' : '#F59E0B',
+                  width: `${liveProgress}%`,
+                  background: liveProgress >= 80 ? '#10B981' : liveProgress >= 50 ? '#6366F1' : '#F59E0B',
                 }} />
               </div>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '8px 0 0' }}>

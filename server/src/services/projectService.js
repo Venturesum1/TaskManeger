@@ -20,13 +20,20 @@ async function listProjects(filters = {}) {
     .sort({ createdAt: -1 })
     .lean();
 
-  // Attach task count and milestone count
+  // Attach task count, milestone count, and live-calculated progress
   const enriched = await Promise.all(projects.map(async (p) => {
-    const [taskCount, milestoneCount] = await Promise.all([
-      Task.countDocuments({ projectId: p._id }),
+    const [tasks, milestoneCount] = await Promise.all([
+      Task.find({ projectId: p._id }).select('status').lean(),
       Milestone.countDocuments({ projectId: p._id }),
     ]);
-    return { ...p, taskCount, milestoneCount };
+    const taskCount = tasks.length;
+    const completedCount = tasks.filter(t => t.status === 'completed').length;
+    const progress = taskCount > 0 ? Math.round((completedCount / taskCount) * 100) : 0;
+    // Persist if changed
+    if (p.progress !== progress) {
+      Project.findByIdAndUpdate(p._id, { progress }).catch(() => {});
+    }
+    return { ...p, taskCount, milestoneCount, progress };
   }));
 
   return enriched;
@@ -103,12 +110,19 @@ async function getProjectStats(id) {
   if (!project) throw Object.assign(new Error('Project not found'), { statusCode: 404 });
 
   const now = new Date();
-  const openTasks = tasks.filter(t => t.status !== 'completed').length;
   const completedTasks = tasks.filter(t => t.status === 'completed').length;
+  const openTasks = tasks.filter(t => t.status !== 'completed').length;
   const overdueTasks = tasks.filter(t => t.endDate && new Date(t.endDate) < now && t.status !== 'completed').length;
   const upcomingMilestones = milestones.filter(m => m.status !== 'completed').sort((a, b) =>
     new Date(a.endDate || 0) - new Date(b.endDate || 0)
   ).slice(0, 3);
+
+  // Always recalculate progress from actual tasks — never trust the stored value
+  const liveProgress = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
+  if (project.progress !== liveProgress) {
+    await Project.findByIdAndUpdate(id, { progress: liveProgress });
+  }
+  project.progress = liveProgress;
 
   // Project health
   let health = 'healthy';
