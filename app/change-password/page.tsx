@@ -8,26 +8,68 @@ import Image from 'next/image';
 import toast from 'react-hot-toast';
 
 const RULES = [
-  { label: 'At least 8 characters',       test: (p: string) => p.length >= 8 },
-  { label: 'One uppercase letter (A-Z)',   test: (p: string) => /[A-Z]/.test(p) },
-  { label: 'One lowercase letter (a-z)',   test: (p: string) => /[a-z]/.test(p) },
-  { label: 'One number (0-9)',             test: (p: string) => /[0-9]/.test(p) },
-  { label: 'One special character (@#$!…)',test: (p: string) => /[^A-Za-z0-9]/.test(p) },
+  { label: 'At least 8 characters',        test: (p: string) => p.length >= 8 },
+  { label: 'One uppercase letter (A-Z)',    test: (p: string) => /[A-Z]/.test(p) },
+  { label: 'One lowercase letter (a-z)',    test: (p: string) => /[a-z]/.test(p) },
+  { label: 'One number (0-9)',              test: (p: string) => /[0-9]/.test(p) },
+  { label: 'One special character (@#$!…)', test: (p: string) => /[^A-Za-z0-9]/.test(p) },
 ];
+
+// ── Moved OUTSIDE the page component so React never remounts it on re-render ──
+function PassField({
+  label, value, onChange, show, onToggle, placeholder, autoComplete,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  show: boolean;
+  onToggle: () => void;
+  placeholder: string;
+  autoComplete: string;
+}) {
+  return (
+    <div>
+      <label className="label">{label}</label>
+      <div className="relative">
+        <input
+          type={show ? 'text' : 'password'}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="input"
+          placeholder={placeholder}
+          required
+          autoComplete={autoComplete}
+          style={{ paddingRight: 40 }}
+        />
+        <button
+          type="button"
+          onClick={onToggle}
+          className="absolute"
+          style={{
+            right: 12, top: '50%', transform: 'translateY(-50%)',
+            background: 'none', border: 'none', cursor: 'pointer',
+            padding: 0, color: 'var(--text-placeholder)',
+          }}
+        >
+          {show ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function ChangePasswordPage() {
   const { user, refreshUser } = useAuth();
   const router = useRouter();
 
-  const [current, setCurrent]     = useState('');
-  const [newPass, setNewPass]     = useState('');
-  const [confirm, setConfirm]     = useState('');
+  const [current,     setCurrent]     = useState('');
+  const [newPass,     setNewPass]     = useState('');
+  const [confirm,     setConfirm]     = useState('');
   const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew]     = useState(false);
+  const [showNew,     setShowNew]     = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [loading, setLoading]     = useState(false);
+  const [loading,     setLoading]     = useState(false);
 
-  // If user doesn't require password change, redirect away
   useEffect(() => {
     if (user && !user.requiresPasswordChange) {
       router.replace(user.role === 'client' ? '/client' : '/');
@@ -66,41 +108,10 @@ export default function ChangePasswordPage() {
     }
   };
 
-  const PassField = ({
-    label, value, onChange, show, onToggle, placeholder, autoComplete,
-  }: {
-    label: string; value: string; onChange: (v: string) => void;
-    show: boolean; onToggle: () => void; placeholder: string; autoComplete: string;
-  }) => (
-    <div>
-      <label className="label">{label}</label>
-      <div className="relative">
-        <input
-          type={show ? 'text' : 'password'}
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          className="input"
-          placeholder={placeholder}
-          required
-          autoComplete={autoComplete}
-          style={{ paddingRight: 40 }}
-        />
-        <button
-          type="button"
-          onClick={onToggle}
-          className="absolute"
-          style={{ right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--text-placeholder)' }}
-        >
-          {show ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
-        </button>
-      </div>
-    </div>
-  );
-
   return (
     <div className="flex min-h-screen items-center justify-center p-4" style={{ background: 'var(--bg)' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
-        {/* Logo + heading */}
+        {/* Header */}
         <div className="flex flex-col items-center mb-6">
           <div className="mb-3 rounded-2xl overflow-hidden shadow-md" style={{ width: 60, height: 60 }}>
             <Image src="/logo.jpg" alt="B4U" width={60} height={60} style={{ objectFit: 'cover' }} />
@@ -145,7 +156,6 @@ export default function ChangePasswordPage() {
               autoComplete="new-password"
             />
 
-            {/* Password strength checklist */}
             {newPass.length > 0 && (
               <div style={{ background: 'var(--bg)', borderRadius: 8, padding: '10px 12px', border: '1px solid var(--border)' }}>
                 {passRules.map(r => (
