@@ -15,6 +15,7 @@ export default function AppLayout({ children }: Props) {
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
+    if (!loading && user && user.requiresPasswordChange) router.push('/change-password');
     if (!loading && user && user.role === 'client') router.push('/client');
   }, [user, loading, router]);
 
