@@ -6,7 +6,6 @@ const Milestone = require('../models/Milestone');
 const Project = require('../models/Project');
 const User = require('../models/User');
 const notificationService = require('../services/notificationService');
-const emailService = require('../services/emailService');
 
 // Run automation checks every hour at minute 5
 function start() {
@@ -51,15 +50,8 @@ async function checkTasksDueTomorrow() {
       metadata: { taskId: task._id },
     }).catch(() => {});
 
-    if (owner.email) {
-      emailService.sendEmail({
-        to: owner.email,
-        subject: `Reminder: Task "${task.title}" due tomorrow`,
-        html: `<p>Hi ${owner.name},</p><p>Your task <strong>${task.title}</strong> is due tomorrow. Please ensure it is completed on time.</p>`,
-      }).catch(() => {});
-    }
   }
-  if (tasks.length) logger.info(`[Automation] Due-tomorrow reminders sent for ${tasks.length} task(s)`);
+  if (tasks.length) logger.info(`[Automation] Due-tomorrow notifications sent for ${tasks.length} task(s)`);
 }
 
 async function checkOverdueTasks() {

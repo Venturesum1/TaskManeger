@@ -27,20 +27,6 @@ async function runDeadlineCheck() {
     for (const task of overdueTasks) {
       const owner = task.owner;
       if (!owner || typeof owner !== 'object') continue;
-
-      if (owner.email) {
-        emailService.sendTaskReminder({
-          to: owner.email,
-          taskTitle: task.title,
-          ownerName: owner.name,
-          dueDate: task.endDate ? formatDate(task.endDate) : 'N/A',
-          priority: task.priority,
-          statusLabel: task.status.replace('_', ' '),
-          milestone: task.milestone,
-          isOverdue: true,
-        }).catch((err) => logger.error('[DeadlineJob] Overdue email failed', { taskId: task._id, error: err.message }));
-      }
-
       notificationService.createNotification({
         userId: owner._id,
         type: 'task_overdue',
@@ -53,20 +39,6 @@ async function runDeadlineCheck() {
     for (const task of dueSoonTasks) {
       const owner = task.owner;
       if (!owner || typeof owner !== 'object') continue;
-
-      if (owner.email) {
-        emailService.sendTaskReminder({
-          to: owner.email,
-          taskTitle: task.title,
-          ownerName: owner.name,
-          dueDate: task.endDate ? formatDate(task.endDate) : 'N/A',
-          priority: task.priority,
-          statusLabel: task.status.replace('_', ' '),
-          milestone: task.milestone,
-          isOverdue: false,
-        }).catch((err) => logger.error('[DeadlineJob] Due-soon email failed', { taskId: task._id, error: err.message }));
-      }
-
       notificationService.createNotification({
         userId: owner._id,
         type: 'task_due',
@@ -74,25 +46,6 @@ async function runDeadlineCheck() {
         message: `"${task.title}" is due tomorrow. Please complete it on time.`,
         metadata: { taskId: task._id },
       }).catch(() => {});
-    }
-
-    if (process.env.ADMIN_EMAIL && (overdueTasks.length || dueSoonTasks.length)) {
-      const overdueList = overdueTasks.map((t) => ({
-        title: t.title,
-        ownerName: typeof t.owner === 'object' ? t.owner.name : 'Unknown',
-        dueDate: t.endDate ? formatDate(t.endDate) : 'N/A',
-      }));
-      const dueSoonList = dueSoonTasks.map((t) => ({
-        title: t.title,
-        ownerName: typeof t.owner === 'object' ? t.owner.name : 'Unknown',
-        dueDate: t.endDate ? formatDate(t.endDate) : 'N/A',
-      }));
-
-      emailService.sendDeadlineReminder({
-        to: process.env.ADMIN_EMAIL,
-        overdueTasks: overdueList,
-        dueSoonTasks: dueSoonList,
-      }).catch((err) => logger.error('[DeadlineJob] Admin digest email failed', { error: err.message }));
     }
 
     logger.info('[DeadlineJob] Completed');
