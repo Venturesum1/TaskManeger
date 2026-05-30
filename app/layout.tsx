@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { PermissionProvider } from '@/contexts/PermissionContext';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
@@ -27,23 +28,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body suppressHydrationWarning>
         <AuthProvider>
-          {children}
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              style: {
-                background: '#fff',
-                color: '#111827',
-                border: '1px solid #E5E7EB',
-                borderRadius: '8px',
-                fontSize: '14px',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-                padding: '10px 14px',
-              },
-              success: { iconTheme: { primary: '#10B981', secondary: '#fff' } },
-              error: { iconTheme: { primary: '#EF4444', secondary: '#fff' } },
-            }}
-          />
+          <PermissionProvider>
+            {children}
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                style: {
+                  background: '#fff',
+                  color: '#111827',
+                  border: '1px solid #E5E7EB',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                  padding: '10px 14px',
+                },
+                success: { iconTheme: { primary: '#10B981', secondary: '#fff' } },
+                error: { iconTheme: { primary: '#EF4444', secondary: '#fff' } },
+              }}
+            />
+          </PermissionProvider>
         </AuthProvider>
       </body>
     </html>

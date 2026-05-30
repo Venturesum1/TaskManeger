@@ -7,30 +7,33 @@ import {
   LayoutDashboard, CheckSquare, Calendar, Video,
   Users, Settings, ChevronLeft, ChevronRight,
   LogOut, BarChart2, Activity, Kanban, User,
-  FolderKanban, Flag, Bell, BarChart3,
+  FolderKanban, Flag, Bell, BarChart3, ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/contexts/PermissionContext';
 import { apiUrl } from '@/lib/api';
 import { cn, getInitials } from '@/lib/utils';
 
-const NAV_MAIN = [
-  { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/projects', icon: FolderKanban, label: 'Projects' },
-  { href: '/tasks', icon: CheckSquare, label: 'Tasks' },
-  { href: '/my-tasks', icon: User, label: 'My Tasks' },
-  { href: '/milestones', icon: Flag, label: 'Milestones' },
-  { href: '/kanban', icon: Kanban, label: 'Kanban' },
-  { href: '/calendar', icon: Calendar, label: 'Calendar' },
-  { href: '/meetings', icon: Video, label: 'Meetings' },
-];
+// Each nav item declares which permission key gates its visibility.
+// Items with no permKey are always shown (e.g. Notifications is handled separately).
+const NAV_ITEMS = [
+  { href: '/',              icon: LayoutDashboard, label: 'Dashboard',   permKey: 'sidebar.dashboard' },
+  { href: '/projects',      icon: FolderKanban,    label: 'Projects',    permKey: 'sidebar.projects' },
+  { href: '/tasks',         icon: CheckSquare,     label: 'Tasks',       permKey: 'sidebar.tasks' },
+  { href: '/my-tasks',      icon: User,            label: 'My Tasks',    permKey: 'sidebar.my_tasks' },
+  { href: '/milestones',    icon: Flag,            label: 'Milestones',  permKey: 'sidebar.milestones' },
+  { href: '/kanban',        icon: Kanban,          label: 'Kanban',      permKey: 'sidebar.kanban' },
+  { href: '/calendar',      icon: Calendar,        label: 'Calendar',    permKey: 'sidebar.calendar' },
+  { href: '/meetings',      icon: Video,           label: 'Meetings',    permKey: 'sidebar.meetings' },
+] as const;
 
 const NAV_TEAM = [
-  { href: '/team', icon: Users, label: 'Team' },
-  { href: '/workload', icon: BarChart3, label: 'Workload', roles: ['admin', 'manager'] as string[] },
-  { href: '/reports', icon: BarChart2, label: 'Reports' },
-  { href: '/activity', icon: Activity, label: 'Activity' },
-  { href: '/settings', icon: Settings, label: 'Settings' },
-];
+  { href: '/team',          icon: Users,      label: 'Team',      permKey: 'sidebar.team' },
+  { href: '/workload',      icon: BarChart3,  label: 'Workload',  permKey: 'sidebar.workload' },
+  { href: '/reports',       icon: BarChart2,  label: 'Reports',   permKey: 'sidebar.reports' },
+  { href: '/activity',      icon: Activity,   label: 'Activity',  permKey: 'sidebar.activity' },
+  { href: '/settings',      icon: Settings,   label: 'Settings',  permKey: 'sidebar.settings' },
+] as const;
 
 interface Props {
   collapsed: boolean;
@@ -40,6 +43,7 @@ interface Props {
 export default function Sidebar({ collapsed, onToggle }: Props) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { can } = usePermissions();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -56,43 +60,21 @@ export default function Sidebar({ collapsed, onToggle }: Props) {
     return () => clearInterval(interval);
   }, [user]);
 
-  const renderNavItem = (item: typeof NAV_MAIN[0] & { roles?: string[] }) => {
-    if (item.roles && user && !item.roles.includes(user.role)) return null;
+  const renderNavItem = (item: { href: string; icon: React.ElementType; label: string; permKey: string }) => {
+    if (!can(item.permKey)) return null;
     const active = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
-    const isNotifications = item.href === '/notifications';
-
     return (
       <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined}>
-        <div className={cn('nav-item', active && 'active')} style={{ position: 'relative' }}>
+        <div className={cn('nav-item', active && 'active')}>
           <item.icon className="flex-shrink-0" style={{ width: 18, height: 18 }} />
-          {!collapsed && <span style={{ opacity: 1 }}>{item.label}</span>}
-          {isNotifications && unreadCount > 0 && (
-            <span style={{
-              position: collapsed ? 'absolute' : 'static',
-              top: collapsed ? 4 : undefined,
-              right: collapsed ? 4 : undefined,
-              marginLeft: collapsed ? 0 : 'auto',
-              minWidth: 18, height: 18,
-              background: '#EF4444',
-              color: '#fff',
-              borderRadius: 9,
-              fontSize: 10,
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '0 4px',
-              lineHeight: 1,
-            }}>
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
-          )}
+          {!collapsed && <span>{item.label}</span>}
         </div>
       </Link>
     );
   };
 
-  const notifItem = { href: '/notifications', icon: Bell, label: 'Notifications' };
+  const showNotifications = can('sidebar.notifications');
+  const showPermissions   = user?.role === 'admin' && can('sidebar.permissions');
 
   return (
     <aside className={cn('sidebar', collapsed && 'collapsed')} style={{ width: collapsed ? 60 : 232 }}>
@@ -119,17 +101,46 @@ export default function Sidebar({ collapsed, onToggle }: Props) {
 
       {/* Nav */}
       <nav className="flex-1 py-3 overflow-y-auto">
-        {/* Main section */}
-        {NAV_MAIN.map(renderNavItem)}
+        {NAV_ITEMS.map(renderNavItem)}
 
         {/* Notifications */}
-        {renderNavItem(notifItem)}
+        {showNotifications && (
+          <Link href="/notifications" title={collapsed ? 'Notifications' : undefined}>
+            <div className={cn('nav-item', pathname === '/notifications' && 'active')} style={{ position: 'relative' }}>
+              <Bell className="flex-shrink-0" style={{ width: 18, height: 18 }} />
+              {!collapsed && <span>Notifications</span>}
+              {unreadCount > 0 && (
+                <span style={{
+                  position: collapsed ? 'absolute' : 'static',
+                  top: collapsed ? 4 : undefined,
+                  right: collapsed ? 4 : undefined,
+                  marginLeft: collapsed ? 0 : 'auto',
+                  minWidth: 18, height: 18,
+                  background: '#EF4444', color: '#fff',
+                  borderRadius: 9, fontSize: 10, fontWeight: 700,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '0 4px', lineHeight: 1,
+                }}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </div>
+          </Link>
+        )}
 
-        {/* Divider */}
         <div style={{ height: 1, background: 'var(--border-subtle)', margin: '8px 12px' }} />
 
-        {/* Team section */}
         {NAV_TEAM.map(renderNavItem)}
+
+        {/* Permission Management — admin only */}
+        {showPermissions && (
+          <Link href="/permissions" title={collapsed ? 'Permission Management' : undefined}>
+            <div className={cn('nav-item', pathname.startsWith('/permissions') && 'active')}>
+              <ShieldCheck className="flex-shrink-0" style={{ width: 18, height: 18 }} />
+              {!collapsed && <span>Permissions</span>}
+            </div>
+          </Link>
+        )}
       </nav>
 
       {/* User */}
@@ -176,7 +187,7 @@ export default function Sidebar({ collapsed, onToggle }: Props) {
       >
         {collapsed
           ? <ChevronRight style={{ width: 12, height: 12, color: 'var(--text-muted)' }} />
-          : <ChevronLeft style={{ width: 12, height: 12, color: 'var(--text-muted)' }} />
+          : <ChevronLeft  style={{ width: 12, height: 12, color: 'var(--text-muted)' }} />
         }
       </button>
     </aside>
