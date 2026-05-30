@@ -22,7 +22,7 @@ function writeCache(user: IUser | null) {
 interface AuthContextType {
   user: IUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; requiresPasswordChange?: boolean }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -70,9 +70,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data.success) {
         setUser(data.data);
         writeCache(data.data);
-        return { success: true };
+        return {
+          success: true,
+          requiresPasswordChange: !!data.data?.requiresPasswordChange,
+        };
       }
-      return { success: false, error: data.error || 'Login failed' };
+      return { success: false, error: data.message || data.error || 'Login failed' };
     } catch {
       return { success: false, error: 'Network error' };
     }

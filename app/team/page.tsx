@@ -5,7 +5,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import Header from '@/components/layout/Header';
 import { IUser, ITask, IMeeting, IActivity } from '@/lib/types';
 import { getInitials, formatDate, STATUS_COLORS, STATUS_LABELS } from '@/lib/utils';
-import { Plus, X, Loader2, Edit2, Trash2, Users, ChevronRight, Mail, Phone, CheckCircle2, Clock } from 'lucide-react';
+import { Plus, X, Loader2, Edit2, Trash2, Users, ChevronRight, Mail, Phone, CheckCircle2, Clock, Lock, LockOpen, ShieldAlert, RotateCcw, Power, History, KeyRound } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/contexts/PermissionContext';
 import { useRouter } from 'next/navigation';
@@ -18,6 +18,15 @@ const ROLE_COLORS: Record<string, { bg: string; color: string }> = {
   member: { bg: '#F3F4F6', color: '#6B7280' },
   client: { bg: '#FFF7ED', color: '#EA580C' },
 };
+
+function PasswordStatusBadge({ user }: { user: IUser }) {
+  if (user.isLocked)            return <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: '#FEE2E2', color: '#DC2626' }}>Locked</span>;
+  if (!user.isActive)           return <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: '#F3F4F6', color: '#9CA3AF' }}>Inactive</span>;
+  if (user.isFirstLogin)        return <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: '#FEF3C7', color: '#D97706' }}>First Login Pending</span>;
+  if (user.forcePasswordChange) return <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: '#FEF3C7', color: '#D97706' }}>Change Required</span>;
+  if (user.passwordChangedAt)   return <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: '#DCFCE7', color: '#16A34A' }}>Password Set</span>;
+  return <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: '#F3F4F6', color: '#6B7280' }}>—</span>;
+}
 
 function UserModal({ user, onClose, onSaved }: { user?: IUser | null; onClose: () => void; onSaved: () => void }) {
   const isEdit = !!user;
@@ -106,6 +115,7 @@ function UserModal({ user, onClose, onSaved }: { user?: IUser | null; onClose: (
 
 function ProfileDrawer({
   member, tasks, meetings, activities, onClose, onEdit, canEdit,
+  onResetPassword, onForceChange, onLock, onUnlock, onSetActive,
 }: {
   member: IUser;
   tasks: ITask[];
@@ -114,6 +124,11 @@ function ProfileDrawer({
   onClose: () => void;
   onEdit: () => void;
   canEdit: boolean;
+  onResetPassword?: () => void;
+  onForceChange?: () => void;
+  onLock?: () => void;
+  onUnlock?: () => void;
+  onSetActive?: (v: boolean) => void;
 }) {
   const memberTasks = tasks.filter(t => (typeof t.owner === 'object' ? t.owner._id : t.owner) === member._id);
   const openTasks = memberTasks.filter(t => t.status !== 'completed');
@@ -184,6 +199,52 @@ function ProfileDrawer({
               </div>
             )}
           </div>
+
+          {/* Security info */}
+          <div style={{ marginTop: 14, padding: '10px 12px', background: 'var(--bg)', borderRadius: 8, border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 7 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>ACCOUNT STATUS</span>
+              {member.isLocked
+                ? <span style={{ fontSize: 11, fontWeight: 700, color: '#DC2626', background: '#FEE2E2', padding: '1px 7px', borderRadius: 4 }}>Locked</span>
+                : member.isActive
+                ? <span style={{ fontSize: 11, fontWeight: 700, color: '#16A34A', background: '#DCFCE7', padding: '1px 7px', borderRadius: 4 }}>Active</span>
+                : <span style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', background: '#F3F4F6', padding: '1px 7px', borderRadius: 4 }}>Inactive</span>
+              }
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>PASSWORD STATUS</span>
+              <PasswordStatusBadge user={member} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>LAST LOGIN</span>
+              <span style={{ fontSize: 12, color: 'var(--text)' }}>
+                {member.lastLogin ? new Date(member.lastLogin).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Never'}
+              </span>
+            </div>
+          </div>
+
+          {/* Admin action buttons */}
+          {canEdit && (
+            <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              <button onClick={onResetPassword} style={{ flex: 1, minWidth: 120, padding: '7px 10px', background: '#EEF2FF', color: '#6366F1', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                <KeyRound style={{ width: 13, height: 13 }} /> Reset Password
+              </button>
+              <button onClick={onForceChange} style={{ flex: 1, minWidth: 120, padding: '7px 10px', background: '#FFF7ED', color: '#EA580C', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                <ShieldAlert style={{ width: 13, height: 13 }} /> Force Change
+              </button>
+              {member.isLocked
+                ? <button onClick={onUnlock} style={{ flex: 1, minWidth: 120, padding: '7px 10px', background: '#F0FDF4', color: '#16A34A', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                    <LockOpen style={{ width: 13, height: 13 }} /> Unlock
+                  </button>
+                : <button onClick={onLock} style={{ flex: 1, minWidth: 120, padding: '7px 10px', background: '#FFFBEB', color: '#D97706', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                    <Lock style={{ width: 13, height: 13 }} /> Lock Account
+                  </button>
+              }
+              <button onClick={() => onSetActive?.(!member.isActive)} style={{ flex: 1, minWidth: 120, padding: '7px 10px', background: member.isActive ? '#FEF2F2' : '#F0FDF4', color: member.isActive ? '#DC2626' : '#16A34A', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                <Power style={{ width: 13, height: 13 }} /> {member.isActive ? 'Deactivate' : 'Activate'}
+              </button>
+            </div>
+          )}
 
           {/* Mini stats */}
           <div className="grid grid-cols-3 gap-3 mt-4">
@@ -320,6 +381,51 @@ export default function TeamPage() {
     fetchAll();
   };
 
+  const adminAction = async (id: string, endpoint: string, method = 'POST', body?: object) => {
+    const res = await fetch(apiUrl(`/api/users/${id}/${endpoint}`), {
+      method, credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    return res.json();
+  };
+
+  const handleResetPassword = async (member: IUser) => {
+    if (!confirm(`Reset password for ${member.name}? A new temporary password will be generated.`)) return;
+    const res = await adminAction(member._id, 'reset-password');
+    if (res.success) {
+      toast.success(`Temporary password: ${res.data.tempPassword}`, { duration: 12000 });
+      fetchAll();
+    } else toast.error(res.message || 'Failed');
+  };
+
+  const handleForceChange = async (member: IUser) => {
+    const res = await adminAction(member._id, 'force-password-change');
+    if (res.success) { toast.success(`${member.name} must change password on next login`); fetchAll(); }
+    else toast.error(res.message || 'Failed');
+  };
+
+  const handleLock = async (member: IUser) => {
+    if (!confirm(`Lock account for ${member.name}?`)) return;
+    const res = await adminAction(member._id, 'lock');
+    if (res.success) { toast.success('Account locked'); fetchAll(); }
+    else toast.error(res.message || 'Failed');
+  };
+
+  const handleUnlock = async (member: IUser) => {
+    const res = await adminAction(member._id, 'unlock');
+    if (res.success) { toast.success('Account unlocked'); fetchAll(); }
+    else toast.error(res.message || 'Failed');
+  };
+
+  const handleSetActive = async (member: IUser, isActive: boolean) => {
+    const label = isActive ? 'activate' : 'deactivate';
+    if (!confirm(`${label.charAt(0).toUpperCase() + label.slice(1)} ${member.name}?`)) return;
+    const res = await adminAction(member._id, 'active', 'PATCH', { isActive });
+    if (res.success) { toast.success(`Account ${label}d`); fetchAll(); }
+    else toast.error(res.message || 'Failed');
+  };
+
   const getMemberStats = (memberId: string) => {
     const assigned = tasks.filter(t => (typeof t.owner === 'object' ? t.owner._id : t.owner) === memberId);
     return {
@@ -374,11 +480,11 @@ export default function TeamPage() {
                 <tr>
                   <th>Name</th>
                   <th>Role</th>
+                  <th>Status</th>
+                  <th>Password</th>
+                  <th>Last Login</th>
                   <th>Email</th>
-                  <th>Phone</th>
-                  <th>Department</th>
-                  <th>Assigned Tasks</th>
-                  <th>Completed</th>
+                  <th>Tasks</th>
                   <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
@@ -401,49 +507,53 @@ export default function TeamPage() {
                         </div>
                       </td>
                       <td>
-                        <span style={{
-                          fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 4,
-                          background: roleCfg.bg, color: roleCfg.color,
-                        }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, textTransform: 'uppercase', background: roleCfg.bg, color: roleCfg.color }}>
                           {member.role}
                         </span>
                       </td>
+                      <td>
+                        {member.isLocked ? (
+                          <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: '#FEE2E2', color: '#DC2626', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <Lock style={{ width: 10, height: 10 }} /> Locked
+                          </span>
+                        ) : !member.isActive ? (
+                          <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: '#F3F4F6', color: '#9CA3AF' }}>Inactive</span>
+                        ) : (
+                          <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: '#DCFCE7', color: '#16A34A' }}>Active</span>
+                        )}
+                      </td>
+                      <td><PasswordStatusBadge user={member} /></td>
+                      <td>
+                        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                          {member.lastLogin ? new Date(member.lastLogin).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'}
+                        </span>
+                      </td>
                       <td><span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{member.email}</span></td>
-                      <td><span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{member.phone || '—'}</span></td>
-                      <td><span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{member.department || '—'}</span></td>
                       <td>
                         <span style={{ fontSize: 13, fontWeight: 600, color: '#F59E0B' }}>{stats.assigned}</span>
-                      </td>
-                      <td>
+                        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}> / </span>
                         <span style={{ fontSize: 13, fontWeight: 600, color: '#10B981' }}>{stats.completed}</span>
                       </td>
                       <td onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1">
-                          <button
-                            className="btn btn-ghost btn-icon-sm"
-                            title="View Profile"
-                            onClick={() => setSelectedMember(member)}
-                          >
+                          <button className="btn btn-ghost btn-icon-sm" title="View Profile" onClick={() => setSelectedMember(member)}>
                             <ChevronRight style={{ width: 14, height: 14 }} />
                           </button>
-                          {currentUser?.role === 'admin' && (
+                          {currentUser?.role === 'admin' && member._id !== currentUser._id && (
                             <>
-                              <button
-                                className="btn btn-ghost btn-icon-sm"
-                                title="Edit"
-                                onClick={() => { setEditUser(member); setShowModal(true); }}
-                              >
+                              <button className="btn btn-ghost btn-icon-sm" title="Edit" onClick={() => { setEditUser(member); setShowModal(true); }}>
                                 <Edit2 style={{ width: 13, height: 13 }} />
                               </button>
-                              {member._id !== currentUser._id && (
-                                <button
-                                  className="btn btn-ghost btn-icon-sm"
-                                  title="Remove"
-                                  onClick={() => deleteUser(member._id)}
-                                >
-                                  <Trash2 style={{ width: 13, height: 13, color: '#EF4444' }} />
-                                </button>
-                              )}
+                              <button className="btn btn-ghost btn-icon-sm" title="Reset Password" onClick={() => handleResetPassword(member)}>
+                                <KeyRound style={{ width: 13, height: 13, color: '#6366F1' }} />
+                              </button>
+                              {member.isLocked
+                                ? <button className="btn btn-ghost btn-icon-sm" title="Unlock Account" onClick={() => handleUnlock(member)}><LockOpen style={{ width: 13, height: 13, color: '#10B981' }} /></button>
+                                : <button className="btn btn-ghost btn-icon-sm" title="Lock Account"   onClick={() => handleLock(member)}><Lock style={{ width: 13, height: 13, color: '#F59E0B' }} /></button>
+                              }
+                              <button className="btn btn-ghost btn-icon-sm" title={member.isActive ? 'Deactivate' : 'Activate'} onClick={() => handleSetActive(member, !member.isActive)}>
+                                <Power style={{ width: 13, height: 13, color: member.isActive ? '#EF4444' : '#10B981' }} />
+                              </button>
                             </>
                           )}
                         </div>
@@ -473,7 +583,12 @@ export default function TeamPage() {
           activities={activities}
           onClose={() => setSelectedMember(null)}
           onEdit={() => { setEditUser(selectedMember); setShowModal(true); setSelectedMember(null); }}
-          canEdit={currentUser?.role === 'admin'}
+          canEdit={currentUser?.role === 'admin' && selectedMember._id !== currentUser._id}
+          onResetPassword={() => handleResetPassword(selectedMember)}
+          onForceChange={() => handleForceChange(selectedMember)}
+          onLock={() => handleLock(selectedMember)}
+          onUnlock={() => handleUnlock(selectedMember)}
+          onSetActive={(v) => handleSetActive(selectedMember, v)}
         />
       )}
     </AppLayout>

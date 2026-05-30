@@ -15,7 +15,9 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (user) router.push(user.role === 'client' ? '/client' : '/');
+    if (user && !user.requiresPasswordChange) {
+      router.push(user.role === 'client' ? '/client' : '/');
+    }
   }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,8 +26,11 @@ export default function LoginPage() {
     const result = await login(email, password);
     setLoading(false);
     if (result.success) {
-      toast.success('Welcome back!');
-      // Redirect is handled by the useEffect above via user state update
+      if (result.requiresPasswordChange) {
+        router.push('/change-password');
+      } else {
+        toast.success('Welcome back!');
+      }
     } else {
       toast.error(result.error || 'Login failed');
     }

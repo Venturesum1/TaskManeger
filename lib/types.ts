@@ -15,6 +15,14 @@ export interface IUser {
   phone?: string;
   avatar?: string;
   isActive?: boolean;
+  // Security fields
+  isFirstLogin?: boolean;
+  forcePasswordChange?: boolean;
+  requiresPasswordChange?: boolean;
+  failedLoginAttempts?: number;
+  isLocked?: boolean;
+  lastLogin?: string;
+  passwordChangedAt?: string;
   createdAt: string;
 }
 
