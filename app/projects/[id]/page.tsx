@@ -137,6 +137,7 @@ export default function ProjectDetailPage() {
     if (!taskForm.owner) { toast.error('Owner is required'); return; }
     setTaskSaving(true);
     try {
+      // Step 1: create the task with projectId in the body
       const res = await fetch(apiUrl('/api/tasks'), {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -152,10 +153,20 @@ export default function ProjectDetailPage() {
       });
       const d = await res.json();
       if (d.success) {
-        toast.success('Task created');
+        // Step 2: patch projectId explicitly — ensures it's set even if server
+        // createTask was running old code before hot-reload picked up taskService changes
+        const taskId = d.data?._id;
+        if (taskId) {
+          await fetch(apiUrl(`/api/tasks/${taskId}`), {
+            method: 'PATCH', credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectId: id }),
+          });
+        }
+        toast.success('Task added to project');
         setShowTaskModal(false);
         setTaskForm(EMPTY_TASK_FORM);
-        fetchData();
+        await fetchData();
       } else toast.error(d.message || 'Failed to create task');
     } catch { toast.error('Network error'); }
     setTaskSaving(false);
