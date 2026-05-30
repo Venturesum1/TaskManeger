@@ -85,7 +85,15 @@ class GmailProvider {
 let _instance = null;
 
 function getProvider() {
-  if (!_instance) _instance = new GmailProvider();
+  if (!_instance) {
+    if (process.env.BREVO_API_KEY) {
+      const { BrevoProvider } = require('./brevoProvider');
+      _instance = new BrevoProvider();
+    } else {
+      // Fallback: Gmail SMTP with 587→465 auto-retry
+      _instance = new GmailProvider();
+    }
+  }
   return _instance;
 }
 
