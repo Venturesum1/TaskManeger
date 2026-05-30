@@ -44,6 +44,7 @@ app.use('/api/analytics',     require('./src/routes/analytics'));
 app.use('/api/projects',      require('./src/routes/projects'));
 app.use('/api/milestones',    require('./src/routes/milestones'));
 app.use('/api/workload',      require('./src/routes/workload'));
+app.use('/api/permissions',   require('./src/routes/permissions'));
 app.use('/api/health',        require('./src/routes/health'));
 app.use('/api/system',        require('./src/routes/system'));
 app.use('/uploads',           require('express').static(require('path').join(__dirname, 'uploads')));
@@ -75,6 +76,13 @@ async function boot() {
     logger.info('[Server] ✓ Email SMTP verified');
   } catch (err) {
     logger.warn('[Server] ⚠ Email SMTP unavailable — server starting anyway, emails will retry via queue', { error: err.message });
+  }
+
+  // 2b. Seed permission defaults (idempotent — safe to run every boot)
+  try {
+    await require('./src/services/permissionService').seedDefaults();
+  } catch (err) {
+    logger.warn('[Server] ⚠ Permission seed failed', { error: err.message });
   }
 
   // 3. Start cron jobs

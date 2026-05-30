@@ -5,10 +5,12 @@ const activityService = require('../services/activityService');
 const { requireAuth } = require('../middleware/authMiddleware');
 const { success, created, fail, notFound, serverError } = require('../helpers');
 
+const { requirePermission } = require('../middleware/permissionMiddleware');
+
 router.use(requireAuth);
 
 // GET /api/tasks/:taskId/comments
-router.get('/', async (req, res) => {
+router.get('/', requirePermission('tasks.comment'), async (req, res) => {
   try {
     const comments = await Comment.find({ task: req.params.taskId })
       .populate('author', 'name email role')
