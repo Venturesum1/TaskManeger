@@ -44,6 +44,7 @@ const HEALTH_CFG: Record<string, { label: string; color: string; bg: string }> =
 };
 
 const EMPTY_MS_FORM = { name: '', description: '', status: 'not_started' as MilestoneStatus, startDate: '', endDate: '', owner: '' };
+const EMPTY_TASK_FORM = { title: '', description: '', owner: '', priority: 'medium' as 'low' | 'medium' | 'high', endDate: '', milestoneId: '' };
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -60,6 +61,10 @@ export default function ProjectDetailPage() {
   const [editMs, setEditMs] = useState<IMilestone | null>(null);
   const [msForm, setMsForm] = useState(EMPTY_MS_FORM);
   const [msSaving, setMsSaving] = useState(false);
+
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [taskForm, setTaskForm] = useState(EMPTY_TASK_FORM);
+  const [taskSaving, setTaskSaving] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -125,6 +130,35 @@ export default function ProjectDetailPage() {
       if (d.success) { toast.success('Milestone deleted'); fetchData(); }
       else toast.error(d.message || 'Delete failed');
     } catch { toast.error('Network error'); }
+  };
+
+  const handleSaveTask = async () => {
+    if (!taskForm.title.trim()) { toast.error('Task title is required'); return; }
+    if (!taskForm.owner) { toast.error('Owner is required'); return; }
+    setTaskSaving(true);
+    try {
+      const res = await fetch(apiUrl('/api/tasks'), {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: taskForm.title.trim(),
+          description: taskForm.description,
+          owner: taskForm.owner,
+          priority: taskForm.priority,
+          endDate: taskForm.endDate || undefined,
+          milestoneId: taskForm.milestoneId || undefined,
+          projectId: id,
+        }),
+      });
+      const d = await res.json();
+      if (d.success) {
+        toast.success('Task created');
+        setShowTaskModal(false);
+        setTaskForm(EMPTY_TASK_FORM);
+        fetchData();
+      } else toast.error(d.message || 'Failed to create task');
+    } catch { toast.error('Network error'); }
+    setTaskSaving(false);
   };
 
   const canEdit = user?.role === 'admin' || user?.role === 'manager';
@@ -421,11 +455,25 @@ export default function ProjectDetailPage() {
         {/* TASKS TAB */}
         {tab === 'tasks' && (
           <div>
+            {canEdit && (
+              <div className="flex justify-end mb-4">
+                <button className="btn btn-primary btn-sm"
+                  onClick={() => { setTaskForm(EMPTY_TASK_FORM); setShowTaskModal(true); }}>
+                  <Plus style={{ width: 14, height: 14 }} /> New Task
+                </button>
+              </div>
+            )}
             {tasks.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-icon"><CheckCircle2 style={{ width: 20, height: 20, color: 'var(--text-muted)' }} /></div>
-                <p style={{ fontWeight: 500, color: 'var(--text)' }}>No tasks linked to this project</p>
-                <p style={{ fontSize: 13, marginTop: 4 }}>Assign tasks to this project when creating or editing them</p>
+                <p style={{ fontWeight: 500, color: 'var(--text)' }}>No tasks yet</p>
+                <p style={{ fontSize: 13, marginTop: 4 }}>Create a task and it will be linked to this project automatically</p>
+                {canEdit && (
+                  <button className="btn btn-primary btn-sm" style={{ marginTop: 16 }}
+                    onClick={() => { setTaskForm(EMPTY_TASK_FORM); setShowTaskModal(true); }}>
+                    <Plus style={{ width: 14, height: 14 }} /> Add Task
+                  </button>
+                )}
               </div>
             ) : (
               <div className="table-wrap">
@@ -468,7 +516,10 @@ export default function ProjectDetailPage() {
                             </span>
                           </td>
                           <td>
-                            <span style={{ fontSize: 13, fontWeight: 500, textTransform: 'capitalize', color: task.priority === 'high' ? '#EF4444' : task.priority === 'medium' ? '#F59E0B' : '#6B7280' }}>
+                            <span style={{
+                              fontSize: 13, fontWeight: 500, textTransform: 'capitalize',
+                              color: task.priority === 'high' ? '#EF4444' : task.priority === 'medium' ? '#F59E0B' : '#6B7280',
+                            }}>
                               {task.priority}
                             </span>
                           </td>
@@ -483,6 +534,11 @@ export default function ProjectDetailPage() {
                     })}
                   </tbody>
                 </table>
+                <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border-subtle)', background: '#FAFAFA' }}>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
+                    {tasks.length} task{tasks.length !== 1 ? 's' : ''} linked to this project
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -517,6 +573,79 @@ export default function ProjectDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Task Creation Modal */}
+      {showTaskModal && (
+        <div className="modal-overlay" onClick={() => setShowTaskModal(false)}>
+          <div className="modal" style={{ maxWidth: 480, width: '100%' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>New Task</h2>
+              <button className="btn btn-ghost btn-icon-sm" onClick={() => setShowTaskModal(false)}>
+                <X style={{ width: 16, height: 16 }} />
+              </button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label className="label">Task Title *</label>
+                <input className="input" placeholder="e.g. Set up CI/CD pipeline"
+                  value={taskForm.title}
+                  onChange={e => setTaskForm(f => ({ ...f, title: e.target.value }))} />
+              </div>
+              <div>
+                <label className="label">Description</label>
+                <textarea className="input" rows={2} placeholder="Optional details"
+                  value={taskForm.description}
+                  onChange={e => setTaskForm(f => ({ ...f, description: e.target.value }))}
+                  style={{ resize: 'vertical' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label className="label">Owner *</label>
+                  <select className="input" value={taskForm.owner}
+                    onChange={e => setTaskForm(f => ({ ...f, owner: e.target.value }))}>
+                    <option value="">Select owner</option>
+                    {allUsers.filter(u => u.role !== 'client').map(u => (
+                      <option key={u._id} value={u._id}>{u.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Priority</label>
+                  <select className="input" value={taskForm.priority}
+                    onChange={e => setTaskForm(f => ({ ...f, priority: e.target.value as 'low' | 'medium' | 'high' }))}>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label className="label">Due Date</label>
+                  <input type="date" className="input" value={taskForm.endDate}
+                    onChange={e => setTaskForm(f => ({ ...f, endDate: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="label">Milestone</label>
+                  <select className="input" value={taskForm.milestoneId}
+                    onChange={e => setTaskForm(f => ({ ...f, milestoneId: e.target.value }))}>
+                    <option value="">No milestone</option>
+                    {milestones.map((ms: IMilestone) => (
+                      <option key={ms._id} value={ms._id}>{ms.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={() => setShowTaskModal(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleSaveTask} disabled={taskSaving}>
+                {taskSaving ? 'Creating...' : 'Create Task'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Milestone Modal */}
       {showMsModal && (

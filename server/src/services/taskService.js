@@ -21,7 +21,7 @@ async function listTasks(filters = {}) {
     .lean();
 }
 
-async function createTask({ title, description, owner, priority, status, startDate, endDate, milestone, createdBy }) {
+async function createTask({ title, description, owner, priority, status, startDate, endDate, milestone, projectId, milestoneId, createdBy }) {
   await connectDB();
   if (!title?.trim() || !owner) {
     throw Object.assign(new Error('Title and owner are required'), { statusCode: 400 });
@@ -36,6 +36,8 @@ async function createTask({ title, description, owner, priority, status, startDa
     startDate: startDate || undefined,
     endDate: endDate || undefined,
     milestone,
+    projectId: projectId || undefined,
+    milestoneId: milestoneId || undefined,
     createdBy,
   });
 
