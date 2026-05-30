@@ -4,7 +4,12 @@ const { success, created, fail, notFound, serverError } = require('../helpers');
 
 async function list(req, res) {
   try {
-    const tasks = await taskService.listTasks(req.query);
+    const filters = { ...req.query };
+    // Members only see tasks assigned to themselves — enforced server-side
+    if (req.auth.role === 'member') {
+      filters.owner = req.auth.userId;
+    }
+    const tasks = await taskService.listTasks(filters);
     return success(res, tasks);
   } catch (err) {
     return serverError(res, err);

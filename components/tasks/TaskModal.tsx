@@ -51,18 +51,23 @@ interface Props {
   users: IUser[];
   onClose: () => void;
   onSaved: () => void;
+  defaultStatus?: TaskStatus;
 }
 
-export default function TaskModal({ task, users, onClose, onSaved }: Props) {
+export default function TaskModal({ task, users, onClose, onSaved, defaultStatus }: Props) {
   const { user: currentUser } = useAuth();
+  const isMember = currentUser?.role === 'member';
   const isEdit = !!task;
   const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'time' | 'files'>('details');
   const [loading, setLoading] = useState(false);
 
+  // For members, always lock owner to themselves
+  const defaultOwner = isMember ? (currentUser?._id ?? '') : (users[0]?._id || '');
+
   // Details form
   const [form, setForm] = useState({
-    title: '', description: '', owner: users[0]?._id || '',
-    priority: 'medium' as TaskPriority, status: 'not_started' as TaskStatus,
+    title: '', description: '', owner: defaultOwner,
+    priority: 'medium' as TaskPriority, status: (defaultStatus || 'not_started') as TaskStatus,
     startDate: '', endDate: '', milestone: '', estimatedHours: '',
   });
 
@@ -80,8 +85,10 @@ export default function TaskModal({ task, users, onClose, onSaved }: Props) {
         milestone: task.milestone || '',
         estimatedHours: task.estimatedHours ? String(task.estimatedHours) : '',
       });
+    } else if (defaultStatus) {
+      setForm(f => ({ ...f, status: defaultStatus }));
     }
-  }, [task]);
+  }, [task, defaultStatus]);
 
   const set = (field: string, val: string) => setForm(f => ({ ...f, [field]: val }));
 
@@ -171,9 +178,18 @@ export default function TaskModal({ task, users, onClose, onSaved }: Props) {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="label">Owner</label>
-                    <select value={form.owner} onChange={e => set('owner', e.target.value)} className="input">
-                      {users.map(u => <option key={u._id} value={u._id}>{u.name}</option>)}
-                    </select>
+                    {isMember ? (
+                      <input
+                        className="input"
+                        value={currentUser?.name ?? ''}
+                        disabled
+                        style={{ opacity: 0.6, cursor: 'not-allowed' }}
+                      />
+                    ) : (
+                      <select value={form.owner} onChange={e => set('owner', e.target.value)} className="input">
+                        {users.map(u => <option key={u._id} value={u._id}>{u.name}</option>)}
+                      </select>
+                    )}
                   </div>
                   <div>
                     <label className="label">Priority</label>

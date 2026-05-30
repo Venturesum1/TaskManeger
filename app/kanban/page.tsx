@@ -219,6 +219,7 @@ export default function KanbanPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editTask, setEditTask] = useState<ITask | null>(null);
+  const [newTaskStatus, setNewTaskStatus] = useState<TaskStatus>('not_started');
   const [activeTask, setActiveTask] = useState<ITask | null>(null);
 
   const sensors = useSensors(
@@ -342,6 +343,7 @@ export default function KanbanPage() {
                   onCardClick={task => { setEditTask(task); setShowModal(true); }}
                   onAddTask={() => {
                     setEditTask(null);
+                    setNewTaskStatus(col.id as TaskStatus);
                     setShowModal(true);
                   }}
                 />
@@ -363,6 +365,7 @@ export default function KanbanPage() {
         <TaskModal
           task={editTask}
           users={users}
+          defaultStatus={editTask ? undefined : newTaskStatus}
           onClose={() => { setShowModal(false); setEditTask(null); }}
           onSaved={fetchTasks}
         />
