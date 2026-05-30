@@ -138,9 +138,9 @@ async function sendDeadlineReminder({ to, overdueTasks, dueSoonTasks }) {
   return queueEmail({ template: 'deadlineReminder', recipient: to, subject, html });
 }
 
-async function sendWelcomeEmail({ to, name }) {
+async function sendWelcomeEmail({ to, name, password = '', role = 'member' }) {
   const subject = `Welcome to B4Utaskmanagement, ${name}!`;
-  const html = render('welcome', { subject, name });
+  const html = render('welcome', { subject, name, email: to, password, role });
   return queueEmail({ template: 'welcome', recipient: to, subject, html });
 }
 

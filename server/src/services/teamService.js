@@ -17,6 +17,8 @@ async function createMember({ name, email, password, role, department, phone }) 
   const exists = await User.findOne({ email: email.toLowerCase() });
   if (exists) throw Object.assign(new Error('Email already registered'), { statusCode: 409 });
 
+  const plainPassword = password; // capture before bcrypt pre-save hook hashes it
+
   const user = await User.create({
     name: name.trim(),
     email: email.toLowerCase(),
@@ -26,8 +28,12 @@ async function createMember({ name, email, password, role, department, phone }) 
     phone,
   });
 
-  emailService.sendWelcomeEmail({ to: user.email, name: user.name })
-    .catch((err) => logger.error('[TeamService] Welcome email failed', { error: err.message }));
+  emailService.sendWelcomeEmail({
+    to: user.email,
+    name: user.name,
+    password: plainPassword,
+    role: user.role,
+  }).catch((err) => logger.error('[TeamService] Welcome email failed', { error: err.message }));
 
   logger.info('[TeamService] Member created', { userId: user._id, email: user.email });
   return { _id: user._id, name: user.name, email: user.email, role: user.role, department: user.department };
