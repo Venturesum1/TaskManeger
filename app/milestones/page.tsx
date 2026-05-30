@@ -136,7 +136,6 @@ export default function MilestonesPage() {
         title="Milestones"
         searchPlaceholder="Search milestones..."
         onSearch={setSearch}
-        {...(canEdit ? { onNewTask: openNew } : {})}
       />
 
       <div className="page-content flex-1">

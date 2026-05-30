@@ -1,13 +1,12 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { apiUrl } from '@/lib/api';
 import AppLayout from '@/components/layout/AppLayout';
 import Header from '@/components/layout/Header';
 import { IProject, IUser, ProjectStatus } from '@/lib/types';
 import { formatDate, getInitials } from '@/lib/utils';
-import { Plus, FolderKanban, X, Calendar, Users } from 'lucide-react';
+import { Plus, FolderKanban, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -19,11 +18,6 @@ const STATUS_CFG: Record<ProjectStatus, { label: string; bg: string; color: stri
   cancelled: { label: 'Cancelled',  bg: '#FEF2F2', color: '#EF4444' },
 };
 
-const HEALTH_CFG: Record<string, { label: string; color: string }> = {
-  healthy:  { label: 'Healthy',  color: '#10B981' },
-  at_risk:  { label: 'At Risk',  color: '#F59E0B' },
-  delayed:  { label: 'Delayed',  color: '#EF4444' },
-};
 
 const EMPTY_FORM = {
   name: '', description: '', status: 'planning' as ProjectStatus,
@@ -134,7 +128,6 @@ export default function ProjectsPage() {
         title="Projects"
         searchPlaceholder="Search projects..."
         onSearch={setSearch}
-        {...(canEdit ? { onNewTask: openNew } : {})}
       />
 
       <div className="page-content flex-1">

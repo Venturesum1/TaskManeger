@@ -6,7 +6,7 @@ import Header from '@/components/layout/Header';
 import { INotification } from '@/lib/types';
 import {
   Bell, CheckSquare, Video, MessageSquare, Flag, FolderKanban,
-  AlertTriangle, Clock, Info, CheckCheck, Trash2, Search,
+  AlertTriangle, Clock, Info, CheckCheck, Trash2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -100,7 +100,7 @@ export default function NotificationsPage() {
   }, [notifications, tab, filterType, search]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
-  const uniqueTypes = [...new Set(notifications.map(n => n.type))];
+  const uniqueTypes = Array.from(new Set(notifications.map(n => n.type)));
 
   return (
     <AppLayout>
