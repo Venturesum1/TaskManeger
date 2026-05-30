@@ -13,6 +13,8 @@ import {
   TrendingUp, CheckSquare,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/contexts/PermissionContext';
+import { useRouter } from 'next/navigation';
 
 const KPI_CARDS = (data: AnalyticsData['kpis']) => [
   { label: 'Total Tasks', value: data.totalTasks, icon: CheckSquare, color: '#6366F1', bg: '#EEF2FF' },
@@ -38,8 +40,14 @@ const CustomPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }:
 
 export default function ReportsPage() {
   const { user, loading: authLoading } = useAuth();
+  const { can, loading: permLoading } = usePermissions();
+  const router = useRouter();
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!permLoading && user && !can('sidebar.reports')) router.replace('/');
+  }, [permLoading, can, user, router]);
 
   useEffect(() => {
     if (authLoading || !user) return;

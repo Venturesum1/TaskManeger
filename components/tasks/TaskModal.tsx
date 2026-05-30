@@ -9,6 +9,7 @@ import { ITask, IUser, IComment, ITimeEntry, IAttachment, TaskStatus, TaskPriori
 import { apiUrl } from '@/lib/api';
 import { getInitials } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermission } from '@/contexts/PermissionContext';
 import toast from 'react-hot-toast';
 
 const STATUSES: { value: TaskStatus; label: string }[] = [
@@ -56,13 +57,14 @@ interface Props {
 
 export default function TaskModal({ task, users, onClose, onSaved, defaultStatus }: Props) {
   const { user: currentUser } = useAuth();
-  const isMember = currentUser?.role === 'member';
+  const canAssign = usePermission('tasks.assign');
+  // Lock owner to self only when the user cannot assign tasks to others
+  const ownerLocked = !canAssign && currentUser?.role === 'member';
   const isEdit = !!task;
   const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'time' | 'files'>('details');
   const [loading, setLoading] = useState(false);
 
-  // For members, always lock owner to themselves
-  const defaultOwner = isMember ? (currentUser?._id ?? '') : (users[0]?._id || '');
+  const defaultOwner = ownerLocked ? (currentUser?._id ?? '') : (users[0]?._id || '');
 
   // Details form
   const [form, setForm] = useState({
@@ -178,7 +180,7 @@ export default function TaskModal({ task, users, onClose, onSaved, defaultStatus
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="label">Owner</label>
-                    {isMember ? (
+                    {ownerLocked ? (
                       <input
                         className="input"
                         value={currentUser?.name ?? ''}

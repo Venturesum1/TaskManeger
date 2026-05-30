@@ -4,6 +4,7 @@ import { Search, Plus, X, Bell } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { getInitials } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermission } from '@/contexts/PermissionContext';
 
 interface Props {
   title: string;
@@ -16,6 +17,7 @@ interface Props {
 export default function Header({ title, onNewTask, searchPlaceholder, onSearch, actions }: Props) {
   const [search, setSearch] = useState('');
   const { user } = useAuth();
+  const canCreateTask = usePermission('tasks.create');
 
   const handleSearch = (v: string) => {
     setSearch(v);
@@ -61,8 +63,8 @@ export default function Header({ title, onNewTask, searchPlaceholder, onSearch, 
       {/* Custom Actions */}
       {actions}
 
-      {/* New Task Button */}
-      {onNewTask && (
+      {/* New Task Button — only shown when tasks.create permission is ON */}
+      {onNewTask && canCreateTask && (
         <button onClick={onNewTask} className="btn btn-primary btn-sm">
           <Plus style={{ width: 15, height: 15 }} />
           New Task
