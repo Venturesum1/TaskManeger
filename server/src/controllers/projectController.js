@@ -4,7 +4,12 @@ const { success, created, fail, notFound, serverError } = require('../helpers');
 
 async function list(req, res) {
   try {
-    const projects = await projectService.listProjects(req.query);
+    const filters = { ...req.query };
+    // Clients only see projects assigned to them — enforced server-side
+    if (req.auth.role === 'client') {
+      filters.clientId = req.auth.userId;
+    }
+    const projects = await projectService.listProjects(filters);
     return success(res, projects);
   } catch (err) {
     return serverError(res, err);
@@ -14,6 +19,11 @@ async function list(req, res) {
 async function getOne(req, res) {
   try {
     const data = await projectService.getProjectStats(req.params.id);
+    // Client cannot view a project they are not assigned to
+    if (req.auth.role === 'client') {
+      const cid = data.project.clientId?._id?.toString() ?? data.project.clientId?.toString();
+      if (cid !== req.auth.userId) return notFound(res, 'Project');
+    }
     return success(res, data);
   } catch (err) {
     if (err.statusCode === 404) return notFound(res, 'Project');
