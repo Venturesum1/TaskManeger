@@ -5,7 +5,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import Header from '@/components/layout/Header';
 import { AnalyticsData } from '@/lib/types';
 import {
-  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
+  PieChart, Pie, BarChart, Bar, XAxis, YAxis,
   Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import {
@@ -105,18 +105,14 @@ export default function ReportsPage() {
               <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
                   <Pie
-                    data={nonZeroStatus}
+                    data={nonZeroStatus.map(s => ({ ...s, fill: s.color }))}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
                     label={CustomPieLabel}
                     outerRadius={100}
                     dataKey="value"
-                  >
-                    {nonZeroStatus.map((entry, index) => (
-                      <Cell key={index} fill={entry.color} />
-                    ))}
-                  </Pie>
+                  />
                   <Tooltip formatter={(value: any, name: any) => [value, name]} />
                   <Legend
                     iconType="circle"

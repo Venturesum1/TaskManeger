@@ -13,6 +13,8 @@ const TaskSchema = new mongoose.Schema({
   startDate: { type: Date },
   endDate: { type: Date },
   milestone: { type: String, default: '' },
+  projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Project' },
+  milestoneId: { type: mongoose.Schema.Types.ObjectId, ref: 'Milestone' },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   estimatedHours: { type: Number, default: 0 },
 }, { timestamps: true });

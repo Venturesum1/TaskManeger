@@ -9,7 +9,8 @@ router.get('/', notificationController.list);
 router.get('/unread-count', notificationController.unreadCount);
 router.get('/whatsapp-link', notificationController.getWhatsAppLink);
 router.post('/send-reminder', notificationController.sendReminder);
-router.patch('/:id/read', notificationController.markRead);
 router.patch('/mark-all-read', notificationController.markAllRead);
+router.patch('/:id/read', notificationController.markRead);
+router.delete('/:id', notificationController.deleteOne);
 
 module.exports = router;

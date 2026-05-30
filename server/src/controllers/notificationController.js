@@ -73,6 +73,15 @@ async function sendReminder(req, res) {
   }
 }
 
+async function deleteOne(req, res) {
+  try {
+    await notificationService.deleteNotification(req.params.id, req.auth.userId);
+    return success(res, null);
+  } catch (err) {
+    return serverError(res, err);
+  }
+}
+
 function getWhatsAppLink(req, res) {
   try {
     const { phone, message } = req.query;
@@ -84,4 +93,4 @@ function getWhatsAppLink(req, res) {
   }
 }
 
-module.exports = { list, markRead, markAllRead, unreadCount, sendReminder, getWhatsAppLink };
+module.exports = { list, markRead, markAllRead, unreadCount, sendReminder, getWhatsAppLink, deleteOne };

@@ -4,7 +4,13 @@ const NotificationSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   type: {
     type: String,
-    enum: ['task_due', 'task_overdue', 'task_assigned', 'meeting_reminder', 'meeting_invite', 'general'],
+    enum: [
+      'task_due', 'task_overdue', 'task_assigned', 'task_updated', 'task_completed',
+      'meeting_reminder', 'meeting_invite',
+      'comment_mention', 'deadline_reminder',
+      'milestone_completed', 'project_updated',
+      'system_notification', 'general',
+    ],
     required: true,
   },
   title: { type: String, required: true },

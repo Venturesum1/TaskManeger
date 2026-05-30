@@ -1,8 +1,43 @@
 ---
-name: project-phase25
-description: Phase 2.5 features implemented for B4Utaskmanagement platform
+name: project-phase2.5-and-3
+description: Phase 2.5 and Phase 3 features implemented for B4Utaskmanagement platform
 metadata:
   type: project
+---
+
+## Phase 3 — Complete (2026-05-30)
+
+New modules: Projects, Milestones, Notifications Center, Workload Dashboard, Automation Engine.
+
+### New server models
+- `Project.js` — name, description, clientId, status (planning/active/on_hold/completed/cancelled), startDate, endDate, progress, teamMembers, createdBy
+- `Milestone.js` — projectId, name, description, owner, status (not_started/in_progress/completed/delayed), progress, startDate, endDate
+
+### Modified server models
+- `Task.js` — added optional `projectId` and `milestoneId` fields (backward-compatible)
+- `Notification.js` — expanded type enum: task_updated, task_completed, comment_mention, deadline_reminder, milestone_completed, project_updated, system_notification
+- `Activity.js` — added 'project' and 'milestone' to entityType enum
+
+### New server routes
+- `GET/POST /api/projects`, `GET/PATCH/DELETE /api/projects/:id`
+- `GET/POST /api/milestones`, `GET/PATCH/DELETE /api/milestones/:id`
+- `GET /api/workload` (admin/manager only — returns per-user task/hour stats)
+- `DELETE /api/notifications/:id` (added to existing notifications routes)
+
+### New cron job
+- `automationJob.js` — runs hourly at :05; sends due-tomorrow emails/notifications, overdue alerts, delayed milestone/project alerts to managers/admins
+
+### New frontend pages
+- `/projects` — list with CRUD modal, filters
+- `/projects/[id]` — detail page with Overview/Milestones/Tasks/Activity tabs
+- `/milestones` — list with CRUD modal, project+status filters, auto-progress from tasks
+- `/notifications` — center with all/unread tabs, type filter, mark-read, delete
+- `/workload` — admin/manager only; bar chart + table with green/yellow/red load indicators
+
+### Updated Sidebar
+- Added: Projects (FolderKanban), Milestones (Flag), Notifications (Bell + live unread count badge), Workload (BarChart3, role-gated)
+- Added divider separating main nav from team/reporting nav
+
 ---
 
 Phase 2.5 implementation completed on 2026-05-29.

@@ -3,6 +3,22 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { apiUrl } from '@/lib/api';
 import { IUser } from '@/lib/types';
 
+const CACHE_KEY = 'b4u_user';
+
+function readCache(): IUser | null {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function writeCache(user: IUser | null) {
+  try {
+    if (user) sessionStorage.setItem(CACHE_KEY, JSON.stringify(user));
+    else sessionStorage.removeItem(CACHE_KEY);
+  } catch {}
+}
+
 interface AuthContextType {
   user: IUser | null;
   loading: boolean;
@@ -14,8 +30,10 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<IUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Initialise from cache immediately — eliminates blank-screen flash
+  const [user, setUser] = useState<IUser | null>(() => readCache());
+  // If we had a cached user we can skip the loading spinner entirely
+  const [loading, setLoading] = useState<boolean>(() => readCache() === null);
 
   const refreshUser = useCallback(async () => {
     try {
@@ -23,17 +41,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         setUser(data.data);
+        writeCache(data.data);
       } else {
         setUser(null);
+        writeCache(null);
       }
     } catch {
-      setUser(null);
+      // Network error — keep cached user rather than logging out
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { refreshUser(); }, [refreshUser]);
+  useEffect(() => {
+    // Always verify with server in background, but don't block render
+    refreshUser();
+  }, [refreshUser]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -46,6 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json();
       if (data.success) {
         setUser(data.data);
+        writeCache(data.data);
         return { success: true };
       }
       return { success: false, error: data.error || 'Login failed' };
@@ -57,6 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     await fetch(apiUrl('/api/auth/logout'), { method: 'POST', credentials: 'include' });
     setUser(null);
+    writeCache(null);
   };
 
   return (
