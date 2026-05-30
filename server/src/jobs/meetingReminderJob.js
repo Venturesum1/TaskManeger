@@ -17,21 +17,6 @@ async function runMeetingCheck() {
       for (const participant of participants) {
         if (typeof participant !== 'object' || !participant.email) continue;
 
-        emailService.sendMeetingReminder({
-          to: participant.email,
-          title: meeting.title,
-          date: meeting.date,
-          startTime: meeting.startTime,
-          endTime: meeting.endTime,
-          meetLink: meeting.googleMeetLink || '',
-        }).catch((err) =>
-          logger.error('[MeetingReminderJob] Email failed', {
-            meetingId: meeting._id,
-            participant: participant.email,
-            error: err.message,
-          })
-        );
-
         notificationService.createNotification({
           userId: participant._id,
           type: 'meeting_reminder',

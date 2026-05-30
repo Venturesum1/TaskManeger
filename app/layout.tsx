@@ -6,7 +6,6 @@ import { Toaster } from 'react-hot-toast';
 export const metadata: Metadata = {
   title: 'B4Utaskmanagement — Task Management Dashboard',
   description: 'B4Utaskmanagement — Smart task and team management platform',
-  icons: { icon: '/favicon.ico' },
 };
 
 export const viewport: Viewport = {
