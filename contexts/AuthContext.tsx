@@ -22,7 +22,7 @@ function writeCache(user: IUser | null) {
 interface AuthContextType {
   user: IUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; requiresPasswordChange?: boolean }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
