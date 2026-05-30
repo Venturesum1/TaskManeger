@@ -189,7 +189,11 @@ export default function TaskModal({ task, users, onClose, onSaved, defaultStatus
                       />
                     ) : (
                       <select value={form.owner} onChange={e => set('owner', e.target.value)} className="input">
-                        {users.map(u => <option key={u._id} value={u._id}>{u.name}</option>)}
+                        {users.map(u => (
+                          <option key={u._id} value={u._id}>
+                            {u.name}{u.department ? ` — ${u.department}` : ` (${u.role})`}
+                          </option>
+                        ))}
                       </select>
                     )}
                   </div>
