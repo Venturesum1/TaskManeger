@@ -41,6 +41,9 @@ app.use('/api/notifications', require('./src/routes/notifications'));
 app.use('/api/send-reminder', require('./src/routes/sendReminder'));
 app.use('/api/activities',    require('./src/routes/activities'));
 app.use('/api/analytics',     require('./src/routes/analytics'));
+app.use('/api/projects',      require('./src/routes/projects'));
+app.use('/api/milestones',    require('./src/routes/milestones'));
+app.use('/api/workload',      require('./src/routes/workload'));
 app.use('/api/health',        require('./src/routes/health'));
 app.use('/api/system',        require('./src/routes/system'));
 app.use('/uploads',           require('express').static(require('path').join(__dirname, 'uploads')));
@@ -78,7 +81,8 @@ async function boot() {
   require('./src/jobs/deadlineReminderJob').start();
   require('./src/jobs/meetingReminderJob').start();
   require('./src/jobs/emailQueueProcessor').start();
-  logger.info('[Server] ✓ Cron jobs started (deadline, meeting reminder, email queue)');
+  require('./src/jobs/automationJob').start();
+  logger.info('[Server] ✓ Cron jobs started (deadline, meeting reminder, email queue, automation)');
 
   // 4. Listen
   app.listen(PORT, () => {

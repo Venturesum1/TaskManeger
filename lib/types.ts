@@ -2,6 +2,9 @@ export type TaskStatus = 'not_started' | 'in_progress' | 'completed' | 'blocked'
 export type TaskPriority = 'low' | 'medium' | 'high';
 export type UserRole = 'admin' | 'manager' | 'member' | 'client';
 export type MeetingStatus = 'scheduled' | 'completed' | 'cancelled';
+export type ProjectStatus = 'planning' | 'active' | 'on_hold' | 'completed' | 'cancelled';
+export type MilestoneStatus = 'not_started' | 'in_progress' | 'completed' | 'delayed';
+export type ProjectHealth = 'healthy' | 'at_risk' | 'delayed';
 
 export interface IUser {
   _id: string;
@@ -90,10 +93,47 @@ export interface IActivity {
   createdAt: string;
 }
 
+export interface IProject {
+  _id: string;
+  name: string;
+  description?: string;
+  clientId?: IUser | string;
+  status: ProjectStatus;
+  startDate?: string;
+  endDate?: string;
+  progress: number;
+  teamMembers: IUser[];
+  createdBy: IUser | string;
+  taskCount?: number;
+  milestoneCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IMilestone {
+  _id: string;
+  projectId: IProject | string;
+  name: string;
+  description?: string;
+  owner?: IUser | string;
+  status: MilestoneStatus;
+  progress: number;
+  startDate?: string;
+  endDate?: string;
+  tasks?: ITask[];
+  taskCount?: number;
+  completedTaskCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface INotification {
   _id: string;
   user: string;
-  type: 'task_due' | 'task_overdue' | 'meeting_reminder' | 'task_assigned';
+  type: 'task_due' | 'task_overdue' | 'meeting_reminder' | 'task_assigned' | 'task_updated' |
+        'task_completed' | 'comment_mention' | 'deadline_reminder' | 'milestone_completed' |
+        'project_updated' | 'system_notification' | 'general';
+  title?: string;
   message: string;
   read: boolean;
   createdAt: string;

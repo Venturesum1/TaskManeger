@@ -141,7 +141,7 @@ export default function SettingsPage() {
               <h3 style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 600 }}>Company</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {[
-                  { label: 'Company Name', value: 'B4Utaskmanagement' },
+                  { label: 'Company Name', value: 'B4Ucommerce' },
                   { label: 'Timezone', value: 'Asia/Kolkata (IST)' },
                   { label: 'Platform Version', value: 'Phase 2.5' },
                 ].map(item => (

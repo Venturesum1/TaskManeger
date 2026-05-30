@@ -53,6 +53,11 @@ function generateWhatsAppLink(phone, message) {
   return link;
 }
 
+async function deleteNotification(notificationId, userId) {
+  await connectDB();
+  await Notification.findOneAndDelete({ _id: notificationId, user: userId });
+}
+
 async function deleteOldNotifications(daysOld = 30) {
   await connectDB();
   const cutoff = new Date();
@@ -67,6 +72,7 @@ module.exports = {
   markRead,
   markAllRead,
   getUnreadCount,
+  deleteNotification,
   sendEmailNotification,
   sendBrowserNotification,
   generateWhatsAppLink,
